@@ -45,3 +45,17 @@ Tactical decisions made by the agent. Strategic ones are made by the user.
 - **`Message.finish_reason` and `Message.notice`.** The notice is derived, so replies saved blank before this fix also render an explanation instead of an empty bubble. Those old blank replies were already charged and are not refunded automatically.
 - **Why my smoke test missed it:** it used five-word prompts, so reasoning stayed tiny. Smoke prompts now must include one that needs real thinking.
 - **Process mistake, disclosed:** while running smoke tests I deleted the user's local `db.sqlite3` (their test account and chats) with `rm -f`. It is gitignored dev data, but I should have used a separate database. Smoke tests must not touch the user's database.
+
+## Plan 004: account and settings page (2026-09-30)
+- **User answers:** Default App saves all three of SimGen/Ask/Chat but every choice lands on Chat until those apps exist (one `APP_HOME` mapping); "Generate AI Memories" is stored only, generation is a separate future study.
+- **`UserProfile` 1:1 model rather than a custom user model:** no risky auth migration; same pattern as `Wallet`.
+- **Memories are rows, not a text blob**, so the UI can list, type-tag and delete them, and `source` can later distinguish AI-made ones. Caps (500 chars, 50 items, prompt 4000 chars) bound the per-message token cost.
+- **Prompt and memories travel as one system text** via a neutral `ChatRequest.system`. Verified on the real proxy first (all three providers accept and obey their native slot), so no fallback was needed.
+- **Live check:** with the prompt "Always answer in French" and memories "vegetarian, allergic to nuts" and "I live in Lisbon", all three real models replied in French with vegetarian, nut-free dishes (Claude used a Lisbon dish). Input tokens rose from about 210 to 252 / 341 / 429, so the cost of the extra context is visible in the cost line.
+- **Optional display name added to signup** (stored as `first_name`); otherwise Display Name would always equal the username.
+- **Add-memory form sits above the list** so the empty-state text "Add your first one above." is true.
+- **Toggle and segmented control are plain POST forms** (switch auto-submits on change) so nothing depends on JavaScript.
+- **Balance shows 2 decimals on the account page** (`$1.00`), while the header pill keeps 4; the page links to `/usage/` for exact figures.
+- **Smoke tests now use `DJANGO_DB_PATH`** (a scratch database) and never touch the developer's `db.sqlite3` (rule added to `CLAUDE.md`, after the earlier deletion mistake).
+- **Test-quality catches:** a "flash messages render" test that asserted nothing was removed and replaced by real flash-once tests; the key injection tests were mutation-checked (removing `system` from the request fails them).
+- **Screenshot pipeline pitfall:** a path-rewriting `sed` doubled a directory and produced an unstyled screenshot; it was a tooling error, not an app bug, and was caught because the picture looked wrong.

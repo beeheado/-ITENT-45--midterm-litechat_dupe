@@ -37,6 +37,9 @@ Every non-merge commit subject follows the conventional-commit format (checked m
 
 **Pattern:** each serious bug lived in the gap between "the tests pass" and "the real thing works". The steps that closed the gap were cheap: run the real proxy once, request the real static URL, look at the real pixels. Bug 6 adds a corollary: **the smoke test has to be as demanding as real use** (a hard prompt, not "say hi"), and only a human actually using the app found it.
 
+## Plan 004 (account and settings page)
+The human supplied a feature spec; the agent reviewed the code, asked two scoping questions where the spec described things Darkchat lacks (SimGen/Ask apps, AI memory generation), then ran the loop again: study 003, plan 004, six milestones, real proxy captures before any adapter change, live verification on a scratch database. It shipped the spec's exact strings and behaviours plus the integration that makes the settings matter (the prompt and memories really change model replies). Deliberately not built: LLM-generated memories, in-place memory editing, real SimGen/Ask apps. This time the smoke prompt was a real one, and the screenshots were taken with the stylesheet served by the running server.
+
 ## Exogenous inputs
 The proxy exposes three native API dialects, not one. Real captures (models, completions, SSE streams, four kinds of errors) are in `fixtures/proxy/`, reproducible with `scripts/capture_proxy.py`, described in `proxy-api.md`, and replayed by the adapter tests. Notable findings: usage arrives at a different point in each stream; reasoning tokens are billed as output; a trivial prompt reports about 208 input tokens (hidden overhead); the proxy publishes no prices; all three "providers" are the same underlying model.
 

@@ -15,6 +15,7 @@ Tests: `pytest` (no network; provider streams are replayed from `fixtures/proxy/
 ## Using it
 - Sign up: every new account gets a $1.00 welcome credit.
 - Pick a model per message. Each reply shows its token counts and exact cost, and the balance in the header updates live.
+- `/account/` shows your profile and credit, and holds a global system prompt, memory items (both are sent to the model with every message), an auto-memory switch (stored only for now) and your default landing app.
 - `/usage/` shows the full ledger. Admins can edit prices at `/admin/`, and grant $1 / $5 / $10 to selected wallets with the *Wallet* list's action menu. Grants go through the ledger (balances are never edited directly).
 
 ## Layout

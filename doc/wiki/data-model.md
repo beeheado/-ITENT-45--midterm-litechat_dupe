@@ -16,3 +16,10 @@ Money is stored as **integer micro-credits** (1 credit = $1 = 1,000,000). Prices
 - Balance never goes negative. Overdrafts are clamped and noted in the ledger row; the message keeps its true cost.
 - A message's finalisation and its charge commit or roll back together.
 - **Billing policy** (`ledger.finalize_message`): charge only from provider-reported usage and only when the user got a visible answer. No usage, or no visible answer (e.g. the whole budget spent thinking): saved, marked failed, `cost_micros = 0`, tokens still recorded. A partial answer cut off at the limit is kept and billed.
+
+## Account settings (plan 004)
+| Model | Key fields | Notes |
+|---|---|---|
+| `UserProfile` | `user` 1:1, `system_prompt` (max 4000 chars, enforced by the form), `auto_memory` bool, `default_app` (simgen/ask/chat) | Created with the account by the post-save signal; `profile_for(user)` creates one on demand; migration 0007 backfilled existing users. |
+| `MemoryItem` | `user`, `kind` (preference/fact/goal/context), `content` (max 500), `source` (user/ai), `created_at` | Max 50 per user. `source = "ai"` is reserved for future generated memories; nothing writes it yet. Newest first. |
+Users with ledger history cannot be deleted (wallets are `PROTECT`ed by the append-only ledger); profiles and memories cascade with their user if that ever changes.

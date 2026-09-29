@@ -28,3 +28,9 @@ Django 5.2 + SQLite, server-rendered templates, one small inline JS streaming re
 ## Frontend (after plan 002)
 `static/style.css` holds all styling (tokens for dark/light, one breakpoint at 800px). `templates/chat.html` contains a small inline script: it POSTs the form, reads the NDJSON stream, shows a "thinking" state until the first token, renders reasoning in a collapsed `<details>`, and attaches a Copy button. Message text is only ever set with `textContent`.
 Admin: Wallet list actions grant credit through `core.ledger.credit`.
+
+## Account page and how settings reach the model (plan 004)
+`/account/` (`core/account_views.py`) shows the profile, saves the global system prompt, manages memory items, stores the auto-memory switch and the default app, and shows billing. Every mutation is a POST that redirects back with a flash message, so it works without JavaScript.
+- **System prompt path:** `send()` calls `prompting.build_system_prompt(user)` (the saved prompt, then a "Things to remember about the user:" block of memories, oldest first) and puts it in `ChatRequest.system`. Adapters map it to each provider's native slot: OpenAI a leading `system` message, Anthropic top-level `system`, Gemini `systemInstruction`. It is read at send time, so edits apply to existing conversations immediately. It is billed as input tokens on every message, and `ledger.estimate_reserve` counts it.
+- **Login redirect:** `AppLoginView` sends the user to `APP_HOME[profile.default_app]`. SimGen and Ask do not exist yet, so all three map to the chat home; an explicit `?next=` still wins.
+- **Auto-memory:** the switch is stored only. No code reads past conversations or writes AI memories yet.
