@@ -23,3 +23,13 @@ Tactical decisions made by the agent. Strategic ones are made by the user.
 - **One in-flight reply per conversation** (409), with a 3-minute staleness window so a crashed request can't lock a chat.
 - **Bug found only by live smoke test:** the proxy rejects `max_completion_tokens` on the OpenAI interface, so we send `max_tokens`. Captured as `fixtures/proxy/openai/error_unsupported_param.json`. Lesson: fixtures replay proves parsing, not that requests are accepted, so keep a live smoke step.
 - **Not verified in a browser.** The inline JS was syntax-checked with Node and the server side was exercised over HTTP, but no browser-based UI test has been run.
+
+## Plan 002 (2026-09-29)
+- **Admin credit grants are actions, not editable fields.** "Grant $1/$5/$10" on the Wallet list calls `ledger.credit(kind="topup")`, so the ledger invariant holds. Wallet add is disabled. This fixes a wrong claim the README made after plan 001.
+- **No web fonts, no CSS framework, no new dependencies.** System font stack, CSS variables, `color-mix` for the translucent header.
+- **Theme follows the OS** (`prefers-color-scheme`); dark is the default. No manual toggle (kept simple).
+- **Thinking indicator is class-driven** (`.body.thinking`) and removed by JS on the first token or on completion. An earlier `:empty` selector was dropped because JS inserts an empty text node.
+- **Phone composer bug** found by screenshot: the model `<select>` pushed Send off-screen. Fixed with `width:0; flex:1 1 0`. Lesson: check layouts at a real narrow viewport (an iframe), not a cropped desktop render.
+- **Balance pill now links to `/usage/`.**
+- **Markdown rendering deferred.** It needs a sanitiser or a dependency and deserves its own study.
+- **Bug: the site was served unstyled** (`/static/style.css` 404) because the root `static/` dir was not in `STATICFILES_DIRS`. It existed since plan 001 and passed every test and my screenshots (which loaded the CSS by `file://` path). Found by curl-ing the running server's static URL during plan 002's live smoke test. Fixed in `fix/static-files`; guarded by `test_stylesheet_is_discoverable_by_staticfiles`. Lesson: verify assets through the real server, not the filesystem.

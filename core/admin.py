@@ -1,5 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
+from . import ledger
 from .models import Conversation, LedgerEntry, LLMModel, Message, Wallet
 
 
@@ -9,10 +10,29 @@ class LLMModelAdmin(admin.ModelAdmin):
     list_editable = ("is_active",)
 
 
+MICROS_PER_DOLLAR = 1_000_000
+
+
+def _grant(amount_dollars):
+    def action(modeladmin, request, queryset):
+        for wallet in queryset:
+            ledger.credit(wallet.pk, amount_dollars * MICROS_PER_DOLLAR, "topup", note=f"Granted by {request.user.username}")
+        modeladmin.message_user(request, f"Granted ${amount_dollars} to {queryset.count()} wallet(s).", messages.SUCCESS)
+
+    action.__name__ = f"grant_{amount_dollars}"
+    action.short_description = f"Grant ${amount_dollars} credit"
+    return action
+
+
+
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
     list_display = ("user", "balance_micros")
-    readonly_fields = ("balance_micros",)  # change balances by adding ledger entries, not by editing
+    readonly_fields = ("balance_micros",)  # balances change only through the ledger (see the grant actions)
+    actions = [_grant(1), _grant(5), _grant(10)]
+
+    def has_add_permission(self, request):
+        return False
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):

@@ -2,21 +2,29 @@
 {% load money %}
 {% block title %}Usage · Darkchat{% endblock %}
 {% block content %}
-<h1>Usage</h1>
-<p>Balance <strong>${{ balance_micros|usd }}</strong> · Total spent <strong>${{ spent_micros|usd }}</strong></p>
-<table>
-  <thead><tr><th>When</th><th>Type</th><th>Detail</th><th class="num">Tokens in/out</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead>
-  <tbody>
-  {% for e in entries %}
-    <tr>
-      <td>{{ e.created_at|date:"Y-m-d H:i" }}</td>
-      <td>{{ e.get_kind_display }}</td>
-      <td>{% if e.message %}<a href="{% url 'conversation' e.message.conversation_id %}">{{ e.message.conversation.title }}</a> · {{ e.message.model.display_name }}{% else %}{{ e.note }}{% endif %}</td>
-      <td class="num">{% if e.message %}{{ e.message.input_tokens }} / {{ e.message.output_tokens }}{% endif %}</td>
-      <td class="num">{{ e.amount_micros|usd:6 }}</td>
-      <td class="num">{{ e.balance_after_micros|usd:6 }}</td>
-    </tr>
-  {% empty %}<tr><td colspan="6" class="muted">No activity yet.</td></tr>{% endfor %}
-  </tbody>
-</table>
+<div style="max-width:64rem;margin:0 auto">
+  <h1>Usage</h1>
+  <p class="muted">Every credit and charge, newest first.</p>
+  <div class="stats">
+    <div class="stat"><div class="label">Balance</div><div class="value">${{ balance_micros|usd }}</div></div>
+    <div class="stat"><div class="label">Total spent</div><div class="value">${{ spent_micros|usd }}</div></div>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>When</th><th>Type</th><th>Detail</th><th class="num">Tokens in/out</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead>
+    <tbody>
+    {% for e in entries %}
+      <tr>
+        <td>{{ e.created_at|date:"Y-m-d H:i" }}</td>
+        <td>{{ e.get_kind_display }}</td>
+        <td>{% if e.message %}<a href="{% url 'conversation' e.message.conversation_id %}">{{ e.message.conversation.title }}</a> · {{ e.message.model.display_name }}{% else %}{{ e.note }}{% endif %}</td>
+        <td class="num">{% if e.message %}{{ e.message.input_tokens }} / {{ e.message.output_tokens }}{% endif %}</td>
+        <td class="num">{{ e.amount_micros|usd:6 }}</td>
+        <td class="num">{{ e.balance_after_micros|usd:6 }}</td>
+      </tr>
+    {% empty %}<tr><td colspan="6" class="muted">No activity yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
 {% endblock %}

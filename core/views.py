@@ -34,7 +34,9 @@ def _sidebar(request):
 
 @login_required
 def chat_home(request):
-    return render(request, "chat.html", {"conversations": _sidebar(request), "conversation": None})
+    return render(request, "chat.html", {
+        "conversations": _sidebar(request), "conversation": None, "models": LLMModel.objects.filter(is_active=True),
+    })
 
 
 @login_required
