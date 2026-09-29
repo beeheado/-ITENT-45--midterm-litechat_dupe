@@ -377,9 +377,6 @@ Decisions applied: placeholder prices are fine, uploads and web search are out, 
 > tool: **Bash** - Create feature branch, Django project and core app
 
 
-> tool: **Bash** - Configure settings, templates, auth views, and run tests
-
-
 Tests pass. I'm committing this as separate conventional commits, then merging M1.
 
 
@@ -403,9 +400,6 @@ Now the seed migration for the three proxy models, the admin registration, and t
 ---
 
 ### CLAUDE · 2026-09-29 14:05 UTC
-
-> tool: **Bash** - Seed migration, admin, ledger credit, wallet signal, and tests
-
 
 This is a test bug, not an app bug. `u.wallet` returns the cached, pre-grant instance, so the test needs to reload it.
 
@@ -440,12 +434,6 @@ BSD `sed` needs an empty backup suffix after `-i`, so I'll do that cleanup in Py
 Now the adapter tests. They replay every fixture and check request building. They also run `stream()` through a mock HTTP transport, so nothing touches the network.
 
 
-> tool: **Bash** - Write adapter tests and run suite
-
-
-> tool: **Bash** - Fix truncation tests and rerun
-
-
 All 26 pass. I'm tightening one loose assertion, then committing M3 and merging it.
 
 
@@ -457,9 +445,6 @@ M4 is metering and the ledger. This adds integer cost math, the pre-flight balan
 ---
 
 ### CLAUDE · 2026-09-29 14:08 UTC
-
-> tool: **Bash** - Implement metering services and ledger tests
-
 
 > tool: **Bash** - Fix test flaws and rerun
 
@@ -473,9 +458,6 @@ The two balance assertions are now real, and all 37 pass. Committing M4 and merg
 
 ### CLAUDE · 2026-09-29 14:09 UTC
 
-> tool: **Bash** - Write chat views, template filters, context processor, urls
-
-
 Now the chat template with the streaming reader. It builds message text with `textContent` only, so model output can never inject HTML.
 
 
@@ -483,9 +465,6 @@ Now the chat template with the streaming reader. It builds message text with `te
 
 
 Now the chat tests, using a fake adapter. They cover success, insufficient balance, mid-stream failure, a client disconnect, history, and ownership.
-
-
-> tool: **Bash** - Write chat view tests and run suite
 
 
 > tool: **Bash** - Run server and smoke test all three models through the real proxy
@@ -513,9 +492,6 @@ I'm adding a regression test for that parameter, then re-running the smoke test.
 
 
 M6 is history and billing views: rename and delete for conversations, and a usage page that shows the ledger. I'm skipping the top-up button, per your "keep it simple".
-
-
-> tool: **Bash** - Implement rename, delete, usage page and tests
 
 
 All 55 pass. Committing M6 and merging.
@@ -660,9 +636,6 @@ Chrome is available, so I can screenshot rendered pages to check the visuals. No
 Starting M1 with the admin grant actions.
 
 
-> tool: **Bash** - Add admin grant actions and tests
-
-
 One test line is needlessly convoluted, so I'll simplify it. Then I'll commit and fix the README.
 
 
@@ -745,9 +718,6 @@ The phone composer is fixed, and Send is visible again. Light mode looks right t
 
 
 > tool: **Read** - /private/tmp/claude-501/-Users-luismariano-Downloads-darkchat/d87d0b21-21e5-45ef-ab57-ebfbac8ddc55/scratchpad/shots/out2_usage_light_phone.p
-
-
-> tool: **Bash** - Add UI regression tests and run them
 
 
 All pass. Now I'll commit the visual work in logical pieces, then sync the docs, tick the plan and re-export the transcripts.
@@ -955,7 +925,7 @@ Your project is ready to submit. The final work is pushed and GitHub matches you
 
 **Things to know:**
 - The retrospective says openly that the "stop for approval after each plan" step was effectively waived for both plans, because your replies were read as approval. That's better to state than to have a grader notice.
-- Your commits show an auto-generated author (`Luis Mariano <luismariano@Luiss-MacBook-Air-5.local>`), so GitHub won't link them to your profile. I left the pushed history alone. You can set a proper name and email for future commits with `git config --global user.name` and `user.email`.
+- Your commits show an auto-generated author (`Luis Mariano <[email redacted]>`), so GitHub won't link them to your profile. I left the pushed history alone. You can set a proper name and email for future commits with `git config --global user.name` and `user.email`.
 - Your API keys appeared in plain text in the first prompt. They're redacted in the repo, but you may want to ask the instructor for new ones.
 
 The best pieces to point a grader to are [the retrospective](doc/wiki/retrospective.md) and [the doc index](doc/README.md).
@@ -1028,9 +998,6 @@ The imports work. Now the migrations (the new field, and the larger seeded budge
 
 
 > tool: **Bash** - Generate default-change migration and see which existing tests need updating
-
-
-> tool: **Bash** - Update old tests and add tests for the truncation fix
 
 
 > tool: **Bash** - Mutation-check that the new tests catch a broken billing rule, then restore
@@ -1307,17 +1274,11 @@ Both answers match the recommendations. Writing the architecture and implementat
 M1 is the models: `UserProfile` and `MemoryItem`, created automatically for new users and backfilled for existing ones.
 
 
-> tool: **Bash** - Add profile and memory models, signal, admin, backfill migration and tests
-
-
 > tool: **Bash** - Fix the test, run suite, commit M1
 
 ---
 
 ### CLAUDE · 2026-09-29 15:15 UTC
-
-> tool: **Bash** - Build the account page shell with profile and billing cards, plus tests
-
 
 > tool: **Bash** - Add signup display name, run suite, commit M2
 
@@ -1329,9 +1290,6 @@ M1 is the models: `UserProfile` and `MemoryItem`, created automatically for new 
 ### CLAUDE · 2026-09-29 15:16 UTC
 
 > tool: **Bash** - Implement system prompt: request field, adapters, reserve, form, view and page section
-
-
-> tool: **Bash** - Write tests for adapters, prompt saving and prompt injection
 
 
 All 107 pass. Before committing I'm applying the mutation check to the most important behaviour. If `send()` stops passing the prompt to the model, these tests must fail.
@@ -1350,9 +1308,6 @@ All 107 pass. Before committing I'm applying the mutation check to the most impo
 ### CLAUDE · 2026-09-29 15:18 UTC
 
 > tool: **Bash** - Commit M4
-
-
-> tool: **Bash** - Implement default app selector and login redirect with tests
 
 
 > tool: **Bash** - Commit M5
@@ -1456,3 +1411,105 @@ GitHub's head matches local at `fb3887e`. Now I'll check the transcript's qualit
 
 
 > tool: **Bash** - Keep user decisions in the readable transcript and regenerate it
+
+---
+
+### CLAUDE · 2026-09-29 15:27 UTC
+
+> tool: **Bash** - Build the downloadable transcript with a submission header and scan it
+
+
+The scans are clean. But the header's "20 user turns" is inflated, because the recorded decisions also appear as user-role blocks. I'll correct the count to reflect what you actually typed.
+
+
+> tool: **Bash** - Correct the turn counts in the transcript header and check repo state
+
+
+> tool: **Bash** - Commit locally, re-run leak scan and tests
+
+
+The transcript is ready as a single file, and the GitHub repo is ready to submit. One small push, which I'd like your go-ahead on, would make the repo's copy of the transcript current.
+
+**Your download:** `/Users/luismariano/Downloads/darkchat-session-transcript.md` (about 70 KB). It is a single Markdown file with a short submission header. The header has the repo link, the session span, and turn counts: 12 messages you typed, 44 agent replies and 8 recorded decisions. A reading guide follows.
+
+**What's in it:**
+- **Coverage:** your prompts and my replies from the first message to this request. Each tool call is one line, and your plan approvals and answers to my questions are kept.
+- **Left out:** raw tool output, hidden reasoning and internal harness notes. The complete raw log is in the repo at `doc/transcripts/…jsonl` if a grader wants it.
+- **Checked:** the file has no API keys, none of your API key values and no email address.
+- **End of file:** it stops at the moment I generated it, so this packaging step isn't in it.
+
+**Is GitHub ready?** Yes:
+- **Reachable:** the repo is public and loads without logging in. `main` on GitHub is at `fb3887e`, identical to your local `main` before this request.
+- **Contents:** all the deliverables and extras you were asked for are in it. That includes `CLAUDE.md`, the studies, the plans, the wiki with the retrospective, the real proxy captures and the code with its tests. All 133 tests pass.
+- **Conventions:** every commit follows the conventional-commit format.
+- **Safety:** no keys are in any file or in the history, and `.env` is not in the repo.
+
+**Two small things:**
+1. **Two local commits aren't on GitHub yet.** They hold a better transcript renderer and the refreshed transcript files. You can submit without them, since your download has all of it. To publish them, run `git push origin main`, or tell me and I'll do it.
+2. **Your commits show an auto-generated author,** `Luis Mariano <[email redacted]>`, so GitHub won't link them to your profile. I left the history alone. You can set `git config --global user.name` and `user.email` for future commits.
+
+Also, your real database still needs `python manage.py migrate` before you try the account page. It's worth clicking through `/account/` once, since you haven't used it yet.
+
+---
+
+### USER · 2026-09-29 15:28 UTC
+
+address those two small things
+
+---
+
+### CLAUDE · 2026-09-29 15:29 UTC
+
+Two things: push the two waiting commits, and fix the commit authorship. Pushing is straightforward. For authorship, I first need to see what GitHub knows about the account, so I can pick an identity that links your commits to your profile.
+
+
+> tool: **Bash** - Push the waiting commits and inspect the GitHub account and commit authorship
+
+
+> tool: **AskUserQuestion**
+
+---
+
+### USER · 2026-09-29 15:29 UTC
+
+> **User answered:** Your questions have been answered: "Which email should your commits use? (It becomes public in the repo history.)"="GitHub noreply address (Recommended)", "What about the 97 existing commits with the auto-generated author?"="Leave them (Recommended)". You can now continue with these answers in mind.
+
+
+> tool: **Bash** - Set repo identity, record it, push, and confirm GitHub links the commit to the profile
+
+
+Both small things are done, and GitHub and your local `main` are at the same commit, `fe3c64b`.
+
+1. **Waiting commits pushed.** The two commits with the better transcript renderer and the refreshed transcript files are on GitHub.
+2. **Commit identity set.**
+   - **New identity:** commits now use `Luis Mariano <225854704+beeheado@users.noreply.github.com>`. That is GitHub's private "noreply" address for your account, so your real email doesn't appear in the history.
+   - **New commits:** GitHub now links new commits to your `beeheado` profile.
+   - **Scope:** I set it for this repo only, so your other projects keep their settings. If you want it everywhere, run `git config --global user.name "Luis Mariano"` and `git config --global user.email "225854704+beeheado@users.noreply.github.com"`.
+   - **Old history:** as you chose, the first 97 commits keep the auto-generated author and stay unlinked to your profile. Rewriting them would have changed every commit ID.
+   - **Documentation:** I updated the retrospective so it says this.
+
+Your downloaded transcript at `/Users/luismariano/Downloads/darkchat-session-transcript.md` doesn't include this last step, because it was generated before it. The repo's `doc/transcripts/` copy is also from before these last two commits. To capture everything through this step, run `scripts/export_transcripts.sh`, commit `doc/transcripts/`, and push. Tell me if you'd like me to do that.
+
+---
+
+### USER · 2026-09-29 15:30 UTC
+
+please do that transcript step
+
+
+I'm regenerating both copies from the full session log: the repo's `doc/transcripts/` files and your Downloads file.
+
+---
+
+### CLAUDE · 2026-09-29 15:31 UTC
+
+> tool: **Bash** - Export fresh transcripts, rebuild the download file, and scan both for keys and email
+
+
+> tool: **Bash** - Add email redaction to the transcript tools and re-export
+
+
+> tool: **Bash** - Show the contexts where the email still appears in the raw log
+
+
+> tool: **Bash** - Scrub email fragments too, re-export, and measure exposure in published history
