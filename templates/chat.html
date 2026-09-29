@@ -16,6 +16,12 @@
   {% if not conversation %}
     <p>Pick a model, chat, and pay only for what you use. Start a <strong>new chat</strong> to begin.</p>
   {% else %}
+    <div class="convhead">
+      <form method="post" action="{% url 'rename' conversation.pk %}" class="inline">{% csrf_token %}
+        <input name="title" value="{{ conversation.title }}" maxlength="200" aria-label="Chat title"><button>Rename</button></form>
+      <form method="post" action="{% url 'delete' conversation.pk %}" class="inline" onsubmit="return confirm('Delete this chat?')">{% csrf_token %}
+        <button class="danger">Delete</button></form>
+    </div>
     <div class="messages" id="messages">
       {% for m in chat_messages %}
         <div class="msg {{ m.role }} {% if m.status == 'failed' or m.status == 'cancelled' %}failed{% endif %}">

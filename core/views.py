@@ -3,12 +3,12 @@ import json
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import ledger
-from .models import Conversation, LLMModel, Message
+from .models import Conversation, LedgerEntry, LLMModel, Message
 from .providers import get_adapter
 from .providers.types import ChatMessage, ChatRequest, Done, Error, ReasoningDelta, TextDelta, Usage
 
@@ -129,5 +129,25 @@ def _stream_reply(adapter, req, reply, wallet):
 
 
 @login_required
+@require_POST
+def rename(request, pk):
+    conv = get_object_or_404(Conversation, pk=pk, user=request.user)
+    title = request.POST.get("title", "").strip()[:200]
+    if title:
+        conv.title = title
+        conv.save(update_fields=["title"])
+    return redirect("conversation", pk=conv.pk)
+
+
+@login_required
+@require_POST
+def delete(request, pk):
+    get_object_or_404(Conversation, pk=pk, user=request.user).delete()
+    return redirect("chat_home")
+
+
+@login_required
 def usage(request):
-    return HttpResponse("usage")  # replaced in the history milestone
+    entries = LedgerEntry.objects.filter(wallet__user=request.user).select_related("message__conversation", "message__model")
+    spent = -sum(e.amount_micros for e in entries if e.kind == "charge")
+    return render(request, "usage.html", {"entries": entries, "spent_micros": spent})
