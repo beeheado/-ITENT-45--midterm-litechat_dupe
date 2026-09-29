@@ -22,3 +22,6 @@ media/
 
 # Claude Code local state
 .claude/
+
+# local extra strings to scrub from transcripts (kept out of the public repo)
+.redact_extra

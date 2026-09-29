@@ -11,7 +11,7 @@ import re
 import sys
 from datetime import datetime
 
-KEY = re.compile(r"lp_[A-Za-z0-9_-]{20,}")
+from redact import KEY, leaks, redact  # noqa: E402  (same folder)
 NOISE = re.compile(r"<(system-reminder|local-command-caveat|ide_opened_file|ide_selection|command-name|command-message|command-args|local-command-stdout)>.*?</\1>", re.S)
 PASTE = re.compile(r"</?pasted_content[^>]*>")
 
@@ -87,14 +87,14 @@ def render(path: str) -> str:
             out += [""]
         out += ["\n\n".join(parts), ""]
         last_stamp = stamp
-    return KEY.sub("lp_REDACTED", "\n".join(out))
+    return redact("\n".join(out))
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         sys.exit(__doc__)
     md = render(sys.argv[1])
-    if KEY.search(md):
-        sys.exit("ABORT: key-like string remains in rendered output")
+    if leaks(md):
+        sys.exit("ABORT: sensitive string remains in rendered output")
     open(sys.argv[2], "w", encoding="utf-8").write(md)
     print(f"wrote {sys.argv[2]} ({len(md.splitlines())} lines)")
