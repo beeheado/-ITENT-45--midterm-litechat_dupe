@@ -1,0 +1,26 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Darkchat{% endblock %}</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{% url 'chat_home' %}">darkchat</a>
+  <nav>
+    {% if user.is_authenticated %}
+      <span class="balance" title="Balance">${{ balance_usd|default:"0.00" }}</span>
+      <a href="{% url 'usage' %}">Usage</a>
+      <form method="post" action="{% url 'logout' %}" class="inline">{% csrf_token %}<button class="linklike">Log out ({{ user.username }})</button></form>
+    {% else %}
+      <a href="{% url 'login' %}">Log in</a>
+      <a href="{% url 'signup' %}">Sign up</a>
+    {% endif %}
+  </nav>
+</header>
+<main>{% block content %}{% endblock %}</main>
+</body>
+</html>
