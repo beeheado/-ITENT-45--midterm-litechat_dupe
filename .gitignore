@@ -1,0 +1,24 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Claude Code local state
+.claude/
