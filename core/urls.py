@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import account_views, views
 
 urlpatterns = [
     path("", views.chat_home, name="chat_home"),
@@ -11,6 +11,7 @@ urlpatterns = [
     path("c/<int:pk>/rename/", views.rename, name="rename"),
     path("c/<int:pk>/delete/", views.delete, name="delete"),
     path("usage/", views.usage, name="usage"),
+    path("account/", account_views.account, name="account"),
     path("signup/", views.signup, name="signup"),
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),

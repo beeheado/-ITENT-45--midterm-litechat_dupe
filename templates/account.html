@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load money %}
+{% block title %}Account · Darkchat{% endblock %}
+{% block content %}
+<div class="account">
+  <h1>Account</h1>
+
+  <section class="card" aria-labelledby="h-profile">
+    <h2 id="h-profile">Profile</h2>
+    <dl class="kv">
+      <dt>Display Name</dt><dd>{{ display_name }}</dd>
+      <dt>Username</dt><dd>{{ user.username }}</dd>
+      <dt>User ID</dt><dd>{{ user.pk }}</dd>
+      <dt>Member Since</dt><dd>{{ user.date_joined|date:"F d, Y" }}</dd>
+    </dl>
+  </section>
+
+  <section class="card" aria-labelledby="h-billing">
+    <h2 id="h-billing">Billing</h2>
+    <div class="billing-row">
+      <strong>[Personal] {{ display_name }}</strong>
+      {% if user.is_active %}<span class="badge active">ACTIVE</span>{% else %}<span class="badge">INACTIVE</span>{% endif %}
+    </div>
+    <div class="credit-label">AVAILABLE CREDIT</div>
+    <div class="credit">${{ balance_micros|usd:2 }}</div>
+    <p class="caption"><a href="{% url 'usage' %}">View usage history</a> for the exact balance and every charge.</p>
+  </section>
+
+  <p class="back"><a href="{% url 'chat_home' %}">Back to App</a></p>
+</div>
+{% endblock %}
