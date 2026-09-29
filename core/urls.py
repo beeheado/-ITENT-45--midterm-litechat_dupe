@@ -12,6 +12,7 @@ urlpatterns = [
     path("c/<int:pk>/delete/", views.delete, name="delete"),
     path("usage/", views.usage, name="usage"),
     path("account/", account_views.account, name="account"),
+    path("account/prompt/", account_views.save_prompt, name="save_prompt"),
     path("signup/", views.signup, name="signup"),
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),

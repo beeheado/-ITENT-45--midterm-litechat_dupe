@@ -15,6 +15,15 @@
     </dl>
   </section>
 
+  <section class="card" aria-labelledby="h-prompt">
+    <h2 id="h-prompt">Global System Prompt</h2>
+    <form method="post" action="{% url 'save_prompt' %}">{% csrf_token %}
+      <textarea class="wide" name="system_prompt" rows="5" maxlength="4000" aria-labelledby="h-prompt" placeholder="e.g., You are a helpful assistant that...">{{ profile.system_prompt }}</textarea>
+      <p class="caption">This instruction will apply to all chat sessions. It is sent with every message, so it counts toward your usage.</p>
+      <div class="form-actions"><button>Save Prompt</button></div>
+    </form>
+  </section>
+
   <section class="card" aria-labelledby="h-billing">
     <h2 id="h-billing">Billing</h2>
     <div class="billing-row">
