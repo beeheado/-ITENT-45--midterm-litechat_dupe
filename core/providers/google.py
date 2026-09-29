@@ -18,10 +18,13 @@ class GoogleAdapter(ProviderAdapter):
         return {"x-goog-api-key": key}
 
     def body(self, req: ChatRequest):
-        return {
+        body = {
             "contents": [{"role": ROLE[m.role], "parts": [{"text": m.content}]} for m in req.messages],
             "generationConfig": {"maxOutputTokens": req.max_tokens},
         }
+        if req.system:
+            body["systemInstruction"] = {"parts": [{"text": req.system}]}
+        return body
 
     def parse_stream(self, lines):
         finish, usage = "", None

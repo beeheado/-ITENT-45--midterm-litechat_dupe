@@ -13,6 +13,7 @@ class ChatRequest:
     model_id: str
     messages: list[ChatMessage]
     max_tokens: int = 1024
+    system: str = ""  # instructions for the model; each adapter maps it to the provider's native slot
 
 
 @dataclass
