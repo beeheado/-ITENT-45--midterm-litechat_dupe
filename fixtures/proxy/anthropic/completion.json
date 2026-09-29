@@ -1,0 +1,26 @@
+{
+  "content": [
+    {
+      "signature": "f41f31e6-5fb4-440e-9e1c-c35e740ff0e8",
+      "thinking": "The user wants exactly \"pong\".",
+      "type": "thinking"
+    },
+    {
+      "text": "pong",
+      "type": "text"
+    }
+  ],
+  "id": "f41f31e6-5fb4-440e-9e1c-c35e740ff0e8",
+  "model": "claude-haiku-4-5-20251001",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 208,
+    "output_tokens": 11,
+    "service_tier": "standard"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "pong"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "modelVersion": "gemini-3.8-flash",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 13,
+    "promptTokenCount": 208,
+    "totalTokenCount": 221
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "error": {
+    "message": "invalid or inactive provider key",
+    "type": "authentication_error"
+  },
+  "type": "error"
+}

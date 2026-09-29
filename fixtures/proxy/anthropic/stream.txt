@@ -1,0 +1,76 @@
+event: message_start
+data: {"message":{"content":[],"id":"3c08f61d-1a85-453c-924d-aa057bbd659f","model":"claude-haiku-4-5-20251001","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"input_tokens":208,"output_tokens":0,"service_tier":"standard"}},"type":"message_start"}
+
+event: content_block_start
+data: {"content_block":{"signature":"","thinking":"","type":"thinking"},"index":0,"type":"content_block_start"}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_delta
+data: {"delta":{"thinking":"The","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" user","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" wants","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" me","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" to","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" reply","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" with","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" exactly","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" \"","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":"p","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":"ong","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":"\".","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" Simple","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":".","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"signature":"3c08f61d-1a85-453c-924d-aa057bbd659f","type":"signature_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: content_block_start
+data: {"content_block":{"text":"","type":"text"},"index":1,"type":"content_block_start"}
+
+event: content_block_delta
+data: {"delta":{"text":"p","type":"text_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"ong","type":"text_delta"},"index":1,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":1,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn","stop_sequence":null},"type":"message_delta","usage":{"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"input_tokens":208,"output_tokens":17,"service_tier":"standard"}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+

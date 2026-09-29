@@ -1,0 +1,7 @@
+data: {"candidates":[{"content":{"parts":[{"text":"p"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"ong"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[],"role":"model"},"finishReason":"STOP","index":0}],"modelVersion":"gemini-3.8-flash","usageMetadata":{"cachedContentTokenCount":0,"candidatesTokenCount":14,"promptTokenCount":208,"totalTokenCount":222}}
+
+

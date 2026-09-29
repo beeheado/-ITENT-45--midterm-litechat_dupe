@@ -1,0 +1,12 @@
+{
+  "models": [
+    {
+      "displayName": "gemini-3.8-flash",
+      "name": "models/gemini-3.8-flash",
+      "supportedGenerationMethods": [
+        "generateContent",
+        "streamGenerateContent"
+      ]
+    }
+  ]
+}

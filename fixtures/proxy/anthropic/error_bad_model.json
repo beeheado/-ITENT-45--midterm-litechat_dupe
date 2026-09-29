@@ -1,0 +1,7 @@
+{
+  "error": {
+    "message": "unknown model",
+    "type": "invalid_request_error"
+  },
+  "type": "error"
+}
