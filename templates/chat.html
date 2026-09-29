@@ -37,8 +37,8 @@
         <article class="msg {{ m.role }} {% if m.status == 'failed' or m.status == 'cancelled' %}failed{% endif %}">
           <div class="who">{% if m.role == "user" %}You{% else %}{{ m.model.display_name|default:"Assistant" }}{% endif %}</div>
           {% if m.reasoning %}<details class="reasoning"><summary>Reasoning</summary>{{ m.reasoning }}</details>{% endif %}
-          <div class="body">{{ m.content }}</div>
-          {% if m.error %}<div class="notice">{{ m.error }}</div>{% endif %}
+          {% if m.content.strip or m.role == "user" %}<div class="body">{{ m.content }}</div>{% endif %}
+          {% if m.notice %}<div class="notice {% if m.status == 'complete' %}soft{% endif %}">{{ m.notice }}</div>{% endif %}
           {% if m.role == "assistant" %}<div class="meta"><span>{{ m.input_tokens }} in / {{ m.output_tokens }} out · ${{ m.cost_micros|usd:6 }}</span>{% if m.content %}<button type="button" class="copy">Copy</button>{% endif %}</div>{% endif %}
         </article>
       {% empty %}
@@ -135,8 +135,11 @@
       else if (ev.t === "done") {
         firstToken();
         meta.append(el("span", "", ev.input + " in / " + ev.output + " out · $" + usd(ev.cost, 6)));
-        if (textNode.data) attachCopy(meta, out.body);
-        if (ev.error) { out.root.insertBefore(el("div", "notice", ev.error), meta); out.root.classList.add("failed"); }
+        const hasText = textNode.data.trim().length > 0;
+        if (!hasText) out.body.remove();  // never leave an empty bubble behind
+        else attachCopy(meta, out.body);
+        if (ev.notice) { out.root.insertBefore(el("div", ev.status === "complete" ? "notice soft" : "notice", ev.notice), meta); }
+        if (ev.status === "failed" || ev.status === "cancelled") out.root.classList.add("failed");
         if (balance) balance.textContent = "$" + usd(ev.balance, 4);
       }
       toBottom();

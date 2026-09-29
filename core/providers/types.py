@@ -46,6 +46,14 @@ class Error:
 StreamEvent = TextDelta | ReasoningDelta | Usage | Done | Error
 
 
+# Provider spellings of "stopped because the token budget ran out" (see fixtures/proxy/*/stream_truncated.txt).
+TRUNCATION_REASONS = {"length", "max_tokens", "MAX_TOKENS"}
+
+
+def is_truncated(finish_reason: str) -> bool:
+    return finish_reason in TRUNCATION_REASONS
+
+
 def error_kind(status: int) -> str:
     if status in (401, 403):
         return "auth"

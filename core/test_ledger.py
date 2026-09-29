@@ -124,8 +124,58 @@ def test_overdraft_is_clamped_not_negative(wallet, pending):
 def test_reserve_and_affordability(wallet, model):
     msgs = [ChatMessage("user", "x" * 300)]
     reserve = ledger.estimate_reserve(model, msgs)
-    assert reserve == ledger.cost_for(model, 101, model.max_output_tokens)
+    assert model.max_output_tokens > ledger.RESERVE_OUTPUT_TOKENS  # the cap is what keeps the reserve small
+    assert reserve == ledger.cost_for(model, 101, ledger.RESERVE_OUTPUT_TOKENS)
     ledger.ensure_can_afford(wallet, reserve)  # $1 covers it
     ledger.credit(wallet.pk, -999_999, "adjustment")
     with pytest.raises(ledger.InsufficientBalance):
         ledger.ensure_can_afford(wallet, reserve)
+
+
+# --- no visible answer / truncation policy ---
+from core.models import CUT_OFF, NO_ANSWER, NO_ANSWER_TRUNCATED  # noqa: E402
+
+
+def test_truncated_with_no_answer_is_free_and_failed(wallet, pending):
+    ledger.finalize_message(pending, content="", reasoning="thinking...", usage=Usage(211, 8192), finish_reason="length")
+    pending.refresh_from_db()
+    assert pending.status == "failed" and pending.cost_micros == 0
+    assert pending.error == NO_ANSWER_TRUNCATED and pending.notice == NO_ANSWER_TRUNCATED
+    assert (pending.input_tokens, pending.output_tokens, pending.finish_reason) == (211, 8192, "length")  # tokens still recorded
+    assert pending.reasoning == "thinking..."
+    assert wallet.entries.count() == 1  # only the welcome grant: nothing charged
+    assert_ledger_consistent(wallet)
+
+
+def test_empty_reply_that_was_not_truncated_gets_generic_notice(wallet, pending):
+    ledger.finalize_message(pending, content="   ", usage=Usage(10, 1), finish_reason="stop")
+    pending.refresh_from_db()
+    assert pending.status == "failed" and pending.cost_micros == 0 and pending.error == NO_ANSWER
+
+
+def test_partial_answer_cut_off_is_still_billed_with_a_note(wallet, pending):
+    ledger.finalize_message(pending, content="The first half of", usage=Usage(200, 8000), finish_reason="max_tokens")
+    pending.refresh_from_db()
+    assert pending.status == "complete" and pending.cost_micros > 0 and pending.truncated
+    assert pending.notice == CUT_OFF and not pending.error
+    assert LedgerEntry.objects.filter(message=pending, kind="charge").count() == 1
+    assert_ledger_consistent(wallet)
+
+
+def test_provider_error_with_usage_but_no_text_is_free(wallet, pending):
+    ledger.finalize_message(pending, content="", usage=Usage(100, 5), status="failed", error="boom")
+    pending.refresh_from_db()
+    assert pending.cost_micros == 0 and pending.error == "boom"
+    assert wallet.entries.count() == 1
+
+
+def test_notice_covers_old_rows_saved_before_finish_reason_existed(pending):
+    pending.status, pending.content, pending.finish_reason, pending.error = "complete", "", "", ""
+    assert pending.notice == NO_ANSWER  # e.g. the blank replies created before the fix
+    pending.content = "fine"
+    assert pending.notice == ""
+
+
+def test_seeded_models_have_a_budget_big_enough_to_finish_thinking():
+    assert set(LLMModel.objects.values_list("max_output_tokens", flat=True)) == {8192}
+    assert LLMModel._meta.get_field("max_output_tokens").default == 8192

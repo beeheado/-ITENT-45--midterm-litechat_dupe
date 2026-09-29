@@ -4,10 +4,14 @@ Units: micro-credits (1 credit = $1). Prices are micro-credits per million token
 """
 from django.db import transaction
 
-from .models import LedgerEntry, Wallet
+from .models import NO_ANSWER, NO_ANSWER_TRUNCATED, LedgerEntry, Wallet
+from .providers.types import is_truncated
 
 MTOK = 1_000_000
 CHARS_PER_TOKEN = 3  # deliberately pessimistic; only used for the pre-flight reserve, never for billing
+# The reserve assumes at most this many output tokens, so a user with a few cents left can still ask a short question.
+# A reply that runs longer can overshoot the balance slightly; credit(..., clamp=True) then stops it at zero.
+RESERVE_OUTPUT_TOKENS = 2048
 
 
 class InsufficientBalance(Exception):
@@ -23,7 +27,7 @@ def cost_for(model, input_tokens, output_tokens):
 def estimate_reserve(model, messages):
     """Upper-bound-ish cost of a request, used to refuse it up front if the balance can't cover it."""
     est_input = sum(len(m.content) for m in messages) // CHARS_PER_TOKEN + 1
-    return cost_for(model, est_input, model.max_output_tokens)
+    return cost_for(model, est_input, min(model.max_output_tokens, RESERVE_OUTPUT_TOKENS))
 
 
 def ensure_can_afford(wallet, reserve_micros):
@@ -54,19 +58,27 @@ def credit(wallet_id, amount_micros, kind, note="", message=None, clamp=False):
 
 
 @transaction.atomic
-def finalize_message(message, *, content, reasoning="", usage=None, status="complete", error=""):
+def finalize_message(message, *, content, reasoning="", usage=None, status="complete", error="", finish_reason=""):
     """Finish an assistant message and bill it in ONE transaction: both happen or neither does.
 
-    Policy: bill only from usage the provider reported. With no usage (failure, dropped stream)
-    the message is saved but the user is not charged.
+    Policy: bill only from usage the provider reported, and only when the user got something visible.
+      - no usage (failure, dropped stream): saved, not charged
+      - no visible answer (e.g. the model spent its whole budget on reasoning): failed, not charged
+      - partial or complete answer: charged for the reported tokens
     """
+    visible = bool(content.strip())
     cost = 0
     if usage is not None:
-        cost = cost_for(message.model, usage.input_tokens, usage.output_tokens)
         message.input_tokens, message.output_tokens = usage.input_tokens, usage.output_tokens
-    elif status == "complete":
-        status, error = "failed", error or "Provider reported no usage; not charged."
-    message.content, message.reasoning = content, reasoning
+        if visible:
+            cost = cost_for(message.model, usage.input_tokens, usage.output_tokens)
+    if status == "complete":
+        if usage is None:
+            status, error = "failed", error or "Provider reported no usage; not charged."
+        elif not visible:
+            status = "failed"
+            error = error or (NO_ANSWER_TRUNCATED if is_truncated(finish_reason) else NO_ANSWER)
+    message.content, message.reasoning, message.finish_reason = content, reasoning, finish_reason
     message.status, message.error, message.cost_micros = status, error, cost
     message.save()
     if cost:

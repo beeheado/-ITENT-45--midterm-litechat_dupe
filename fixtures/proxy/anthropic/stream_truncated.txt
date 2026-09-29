@@ -1,0 +1,112 @@
+event: message_start
+data: {"message":{"content":[],"id":"2a3c59d6-3e3f-45d8-9441-bf9ef602676f","model":"claude-haiku-4-5-20251001","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"input_tokens":211,"output_tokens":0,"service_tier":"standard"}},"type":"message_start"}
+
+event: content_block_start
+data: {"content_block":{"signature":"","thinking":"","type":"thinking"},"index":0,"type":"content_block_start"}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_delta
+data: {"delta":{"thinking":"We","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" need","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" answer","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":".","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" User","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" asks","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" explain","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" in","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" detail","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" TCP","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" congestion","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" control","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":".","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" Need","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" comply","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" persona","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":".","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" No","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" need","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" tools","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":".","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" Need","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" detailed","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":".","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" We","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" should","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" explain","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" TCP","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" congestion","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"thinking":" control","type":"thinking_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"signature":"2a3c59d6-3e3f-45d8-9441-bf9ef602676f","type":"signature_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"max_tokens","stop_sequence":null},"type":"message_delta","usage":{"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"input_tokens":211,"output_tokens":30,"service_tier":"standard"}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+

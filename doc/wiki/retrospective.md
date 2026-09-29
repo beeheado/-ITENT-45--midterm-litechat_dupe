@@ -24,6 +24,7 @@ Every non-merge commit subject follows the conventional-commit format (checked m
 - The workflow says to stop for approval after each plan. For plan 001 the human replied "proceed... you have approval for anything you need", so execution ran straight through. For plan 002 the human said to start it "if needed and ready", and the agent read that as approval, writing study, plan and code in one go. Both were reasonable readings, but the gate was effectively waived, not exercised.
 - The agent switched models mid-session (planning on one, executing on another); nothing in the repo depends on that.
 - Commit authorship is the machine's auto-generated identity, so GitHub does not link commits to an account. Left as is rather than rewriting pushed history.
+- While fixing bug 6 the agent deleted the human's local `db.sqlite3` (test account and chats) by running `rm -f db.sqlite3` in smoke-test commands. It is gitignored dev data and nothing in the repo was harmed, but it destroyed the human's data without asking. Disclosed at the time; smoke tests should use their own database.
 
 ## Bugs, and what caught them
 1. **The proxy rejects `max_completion_tokens`** (OpenAI interface). Fixture-replay tests passed because fixtures only prove *parsing*. A live smoke run against the real proxy exposed it. Now captured as a fixture with a regression test.
@@ -32,7 +33,9 @@ Every non-merge commit subject follows the conventional-commit format (checked m
 4. **Tests that could not fail:** two ledger tests had a bare `assert_ledger_consistent(w) and balance == 0` expression, so the balance was never asserted. Found by re-reading the tests; fixed.
 5. **Phone layout hid the Send button** (model dropdown overflowed the composer). Found only after rendering at a real narrow viewport (a first attempt at a "phone" screenshot was silently a cropped desktop render and was discarded).
 
-**Pattern:** each serious bug lived in the gap between "the tests pass" and "the real thing works". The steps that closed the gap were cheap: run the real proxy once, request the real static URL, look at the real pixels.
+6. **Replies showed only "Reasoning", never the answer.** Reported by the human after clicking through the app. Cause: the proxy's models think before answering and thinking counts against `max_tokens`; the seeded budget (1024) was too small, and the app marked the empty reply "complete", billed it, and said nothing. The earlier live smoke test used five-word prompts, so it never triggered this. Fixed in plan 003: real truncated streams captured for all three providers, budget measured and raised to 8192, an explicit notice, and no charge when there is no visible answer (the human's billing decision). See `decisions.md`.
+
+**Pattern:** each serious bug lived in the gap between "the tests pass" and "the real thing works". The steps that closed the gap were cheap: run the real proxy once, request the real static URL, look at the real pixels. Bug 6 adds a corollary: **the smoke test has to be as demanding as real use** (a hard prompt, not "say hi"), and only a human actually using the app found it.
 
 ## Exogenous inputs
 The proxy exposes three native API dialects, not one. Real captures (models, completions, SSE streams, four kinds of errors) are in `fixtures/proxy/`, reproducible with `scripts/capture_proxy.py`, described in `proxy-api.md`, and replayed by the adapter tests. Notable findings: usage arrives at a different point in each stream; reasoning tokens are billed as output; a trivial prompt reports about 208 input tokens (hidden overhead); the proxy publishes no prices; all three "providers" are the same underlying model.
@@ -41,7 +44,7 @@ The proxy exposes three native API dialects, not one. Real captures (models, com
 The keys were pasted into the very first prompt, so they exist in the raw session log. `.env` is untracked; `scripts/export_transcripts.sh` redacts keys before anything is copied into the repo and aborts if any key-like string remains; the pushed history was checked and contains none. The keys themselves were shared in plain text in a chat, so treat them as exposed to that chat and ask the instructor for replacements if that matters.
 
 ## Not verified / known limits
-- The streaming chat page has not been driven in an interactive browser by the agent (only its JavaScript syntax-checked, the server side exercised over HTTP, and static renders screenshotted). The human should click through once.
+- The streaming chat page has not been driven in an interactive browser by the agent (only its JavaScript syntax-checked, the server side exercised over HTTP, and static renders screenshotted). The human's own click-through is what found bug 6; the fix was verified against the real proxy over HTTP, not by the agent in a browser.
 - Low-balance behaviour is tested at the view level, not by eye.
 - Model choice is cosmetic at the answer level (one backend model), and prices are invented placeholders.
 - Single-worker dev server; SQLite; no deployment. Streaming under WSGI pins a worker per active stream.

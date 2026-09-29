@@ -47,3 +47,11 @@ Documented by the proxy: 400 fix request; 401/403 key/provider/expiry; 429 back 
 5. **The proxy publishes no prices.** Per-model prices must be defined by us (seed data).
 6. Images and provider file APIs exist (files expire after 1 hour, 64 MiB per file). Not needed for the MVP.
 7. Assistant roles differ: OpenAI/Anthropic use `assistant`, Google uses `model`. Google has `parts` instead of `content`.
+8. **Thinking eats the token budget, and a reply can end with no answer at all.** Captured in `*/stream_truncated.txt` (30-token budget, prompt "Explain in detail how TCP congestion control works."). All three streams end normally (HTTP 200) with only reasoning and a truncation finish reason, **and usage is still reported** (211 in / 30 out):
+   | Provider | Finish reason | Visible reasoning |
+   |---|---|---|
+   | OpenAI | `length` (last content chunk, usage in a later empty-choices chunk) | yes (`reasoning_content`) |
+   | Anthropic | `max_tokens` (in `message_delta.delta.stop_reason`) | yes (`thinking_delta`) |
+   | Google | `MAX_TOKENS` (final chunk, with `usageMetadata`) | no: thinking is hidden but still counted |
+   Normal endings are `stop` / `end_turn` / `STOP`. Measured need on the OpenAI interface: trivial question about 30 tokens, short poem about 250, "explain in detail" more than 8192.
+9. **Reasoning controls are inconsistent.** Anthropic `thinking: {"type": "disabled"}` and Gemini `generationConfig.thinkingConfig.thinkingBudget: 0` work. OpenAI `reasoning_effort` is accepted but has no effect. OpenAI `max_completion_tokens` is rejected (use `max_tokens`).

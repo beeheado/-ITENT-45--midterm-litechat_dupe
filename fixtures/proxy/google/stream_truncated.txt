@@ -1,0 +1,3 @@
+data: {"candidates":[{"content":{"parts":[],"role":"model"},"finishReason":"MAX_TOKENS","index":0}],"modelVersion":"gemini-3.8-flash","usageMetadata":{"cachedContentTokenCount":0,"candidatesTokenCount":30,"promptTokenCount":211,"totalTokenCount":241}}
+
+

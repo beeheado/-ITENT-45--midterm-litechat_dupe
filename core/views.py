@@ -109,7 +109,7 @@ def send(request, pk):
 
 
 def _stream_reply(adapter, req, reply, wallet):
-    text, reasoning, usage, error, finished = [], [], None, "", False
+    text, reasoning, usage, error, finish = [], [], None, "", None
     try:
         for ev in adapter.stream(req):
             if isinstance(ev, TextDelta):
@@ -123,7 +123,7 @@ def _stream_reply(adapter, req, reply, wallet):
             elif isinstance(ev, Error):
                 error = ev.message
             elif isinstance(ev, Done):
-                finished = True
+                finish = ev.finish_reason or ""
     except GeneratorExit:
         # Client went away mid-stream: usage is unknown, so save what we have and don't bill.
         ledger.finalize_message(reply, content="".join(text), reasoning="".join(reasoning),
@@ -131,11 +131,11 @@ def _stream_reply(adapter, req, reply, wallet):
         raise
     except Exception:  # never leave a message pending
         error = error or "Unexpected error while streaming."
-    status = "complete" if finished and not error else "failed"
+    status = "complete" if finish is not None and not error else "failed"
     ledger.finalize_message(reply, content="".join(text), reasoning="".join(reasoning),
-                            usage=usage, status=status, error=error)
+                            usage=usage, status=status, error=error, finish_reason=finish or "")
     wallet.refresh_from_db()
-    yield _ndjson({"t": "done", "status": reply.status, "error": reply.error, "cost": reply.cost_micros,
+    yield _ndjson({"t": "done", "status": reply.status, "notice": reply.notice, "cost": reply.cost_micros,
                    "input": reply.input_tokens, "output": reply.output_tokens, "balance": wallet.balance_micros})
 
 

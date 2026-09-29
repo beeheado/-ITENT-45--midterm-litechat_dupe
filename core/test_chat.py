@@ -90,7 +90,7 @@ def test_provider_error_midstream_is_failed_and_free(logged, conv, model, user, 
     use_adapter(monkeypatch, [TextDelta("par"), Error("upstream", "boom", 502)])
     r, body = post(logged, conv, model)
     done = events_of(body)[-1]
-    assert done["status"] == "failed" and done["error"] == "boom" and done["cost"] == 0
+    assert done["status"] == "failed" and done["notice"] == "boom" and done["cost"] == 0
     reply = Message.objects.get(conversation=conv, role="assistant")
     assert reply.content == "par" and reply.status == "failed"
     assert Wallet.objects.get(user=user).balance_micros == 1_000_000
@@ -167,3 +167,32 @@ def test_stale_pending_reply_does_not_block_forever(logged, conv, model, monkeyp
     Message.objects.filter(pk=old.pk).update(created_at=timezone.now() - timedelta(minutes=10))
     r, _ = post(logged, conv, model)
     assert r.status_code == 200
+
+
+TRUNCATED_EMPTY = [ReasoningDelta("thinking"), Usage(211, 8192), Done("length")]
+
+
+def test_out_of_tokens_before_answering_is_free_and_explained(logged, conv, model, user, monkeypatch):
+    use_adapter(monkeypatch, TRUNCATED_EMPTY)
+    _, body = post(logged, conv, model)
+    done = events_of(body)[-1]
+    assert done["status"] == "failed" and done["cost"] == 0 and "token budget" in done["notice"]
+    assert done["balance"] == 1_000_000  # not charged
+    reply = Message.objects.get(conversation=conv, role="assistant")
+    assert reply.content == "" and reply.reasoning == "thinking" and reply.finish_reason == "length"
+    page = logged.get(reverse("conversation", args=[conv.pk])).content.decode()
+    assert "token budget" in page and "Reasoning" in page
+
+
+def test_cut_off_partial_answer_is_kept_and_billed(logged, conv, model, monkeypatch):
+    use_adapter(monkeypatch, [TextDelta("half an ans"), Usage(211, 500), Done("max_tokens")])
+    _, body = post(logged, conv, model)
+    done = events_of(body)[-1]
+    assert done["status"] == "complete" and done["cost"] > 0 and "cut off" in done["notice"]
+
+
+def test_old_blank_reply_renders_a_notice_not_an_empty_bubble(logged, conv, model):
+    Message.objects.create(conversation=conv, role="assistant", model=model, status="complete", content="", reasoning="hmm")
+    page = logged.get(reverse("conversation", args=[conv.pk])).content.decode()
+    assert "returned no answer" in page and "Reasoning" in page
+    assert '<div class="body"></div>' not in page
