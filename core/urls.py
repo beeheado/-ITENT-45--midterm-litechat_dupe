@@ -14,9 +14,10 @@ urlpatterns = [
     path("account/", account_views.account, name="account"),
     path("account/prompt/", account_views.save_prompt, name="save_prompt"),
     path("account/auto-memory/", account_views.set_auto_memory, name="set_auto_memory"),
+    path("account/default-app/", account_views.set_default_app, name="set_default_app"),
     path("account/memory/add/", account_views.add_memory, name="add_memory"),
     path("account/memory/<int:pk>/delete/", account_views.delete_memory, name="delete_memory"),
     path("signup/", views.signup, name="signup"),
-    path("login/", auth_views.LoginView.as_view(), name="login"),
+    path("login/", account_views.AppLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]
