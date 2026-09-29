@@ -1,6 +1,6 @@
 """Capture real proxy responses into fixtures/proxy/ (keys redacted).
 
-Usage: python scripts/capture_proxy.py [case ...]   (cases: models completion stream stream_truncated error_bad_model error_bad_key)
+Usage: python scripts/capture_proxy.py [case ...]   (cases: models completion stream stream_truncated stream_system_prompt error_bad_model error_bad_key)
 Tooling only: not part of the Django app. Reads keys from .env.
 """
 
@@ -91,6 +91,23 @@ def truncated_body(name: str, model: str) -> dict:
     }
 
 
+SYSTEM_PROMPT = "Start every reply with the single word BONJOUR in capitals, then answer normally."
+
+
+def system_prompt_body(name: str, model: str) -> dict:
+    """A streaming request carrying a system prompt in each provider's native slot."""
+    q = "What is 2+2?"
+    if name == "openai":
+        return {"model": model, "stream": True, "max_tokens": 2000, "stream_options": {"include_usage": True},
+                "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": q}]}
+    if name == "anthropic":
+        return {"model": model, "stream": True, "max_tokens": 2000, "system": SYSTEM_PROMPT,
+                "messages": [{"role": "user", "content": q}]}
+    return {"systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": [{"role": "user", "parts": [{"text": q}]}],
+            "generationConfig": {"maxOutputTokens": 2000}}
+
+
 def redact(text: str) -> str:
     for key in KEYS.values():
         text = text.replace(key, "REDACTED")
@@ -142,6 +159,13 @@ def main() -> int:
                 ) as r:
                     raw = "".join(r.iter_text())
                 save(name, "stream_truncated", r.status_code, raw, ext="txt")
+
+            if want("stream_system_prompt"):
+                with c.stream(
+                    "POST", p["stream_url"], headers=h, json=system_prompt_body(name, model)
+                ) as r:
+                    raw = "".join(r.iter_text())
+                save(name, "stream_system_prompt", r.status_code, raw, ext="txt")
 
             if want("error_bad_model"):
                 # Google carries the model in the URL, others in the body: swap both.
