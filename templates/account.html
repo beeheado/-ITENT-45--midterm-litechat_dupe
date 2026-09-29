@@ -62,6 +62,16 @@
     {% endif %}
   </section>
 
+  <section class="card" aria-labelledby="h-app">
+    <h2 id="h-app">Default App</h2>
+    <p class="caption" id="app-desc" style="margin-top:0">Choose which app you land on after logging in.</p>
+    <form method="post" action="{% url 'set_default_app' %}" style="margin-top:.75rem">{% csrf_token %}
+      <div class="segmented" role="radiogroup" aria-labelledby="h-app" aria-describedby="app-desc">
+        {% for value, label in default_apps %}<button name="default_app" value="{{ value }}" role="radio" aria-checked="{% if profile.default_app == value %}true{% else %}false{% endif %}">{{ label }}</button>{% endfor %}
+      </div>
+    </form>
+  </section>
+
   <section class="card" aria-labelledby="h-billing">
     <h2 id="h-billing">Billing</h2>
     <div class="billing-row">
