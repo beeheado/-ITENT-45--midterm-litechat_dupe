@@ -88,6 +88,8 @@ REQ = ChatRequest("m", [ChatMessage("user", "hi"), ChatMessage("assistant", "yo"
 def test_request_bodies():
     o = get_adapter("openai").body(REQ)
     assert o["stream_options"] == {"include_usage": True} and o["messages"][1] == {"role": "assistant", "content": "yo"}
+    # The proxy rejects max_completion_tokens (fixtures/proxy/openai/error_unsupported_param.json)
+    assert o["max_tokens"] == 77 and "max_completion_tokens" not in o
     a = get_adapter("anthropic").body(REQ)
     assert a["max_tokens"] == 77 and a["stream"] is True
     g = get_adapter("google").body(REQ)
@@ -114,6 +116,7 @@ def test_urls_and_auth(settings):
         ("openai", "error_bad_model.json", 400, "bad_request"),
         ("anthropic", "error_bad_model.json", 400, "bad_request"),
         ("google", "error_bad_model.json", 404, "bad_request"),
+        ("openai", "error_unsupported_param.json", 400, "bad_request"),
     ],
 )
 def test_error_fixtures(provider, case, status, kind):
