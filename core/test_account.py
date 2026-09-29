@@ -285,3 +285,72 @@ def test_other_users_memories_never_leak_into_my_requests(user, django_user_mode
     other = django_user_model.objects.create_user("eve", password="pw")
     MemoryItem.objects.create(user=other, content="eve's secret")
     assert "eve's secret" not in build_system_prompt(user)
+
+
+# --- default app + login redirect ---
+from core.account_views import APP_HOME  # noqa: E402
+
+
+def choose(client, value):
+    return client.post(reverse("set_default_app"), {"default_app": value}, follow=True)
+
+
+def checked_labels(html):
+    return re.findall(r'aria-checked="true">([^<]+)<', html)
+
+
+def test_default_app_section_text_and_three_choices(logged):
+    html = page(logged)
+    assert "Choose which app you land on after logging in." in html
+    for label in ("SimGen", "Ask", "Chat"):
+        assert f">{label}</button>" in html
+    assert checked_labels(html) == ["Chat"]  # default highlighted
+
+
+@pytest.mark.parametrize("value,label", [("simgen", "SimGen"), ("ask", "Ask"), ("chat", "Chat")])
+def test_choosing_persists_and_highlights_only_that_option(logged, user, value, label):
+    html = choose(logged, value).content.decode()
+    assert UserProfile.objects.get(user=user).default_app == value
+    assert checked_labels(html) == [label] and f"land on {label} after logging in" in html
+    assert checked_labels(page(logged)) == [label]  # still selected on a fresh load
+
+
+def test_invalid_default_app_is_rejected(logged, user):
+    choose(logged, "simgen")
+    assert "Pick SimGen, Ask or Chat." in choose(logged, "hacker").content.decode()
+    assert UserProfile.objects.get(user=user).default_app == "simgen"
+
+
+def test_default_app_actions_require_login_and_post(client, logged):
+    assert logged.get(reverse("set_default_app")).status_code == 405
+    client.logout()
+    assert client.post(reverse("set_default_app"), {"default_app": "ask"}).status_code == 302
+
+
+@pytest.mark.parametrize("choice", ["simgen", "ask", "chat"])
+def test_login_lands_on_the_mapped_app(client, django_user_model, choice, monkeypatch):
+    u = django_user_model.objects.create_user("lee", password="pw-12345-xyz")
+    UserProfile.objects.filter(user=u).update(default_app=choice)
+    r = client.post(reverse("login"), {"username": "lee", "password": "pw-12345-xyz"})
+    assert r.status_code == 302 and r["Location"] == reverse(APP_HOME[choice])
+
+
+def test_login_uses_the_mapping_so_a_future_app_is_one_line(client, django_user_model, monkeypatch):
+    monkeypatch.setitem(APP_HOME, "ask", "usage")  # pretend Ask now has its own home
+    u = django_user_model.objects.create_user("lee", password="pw-12345-xyz")
+    UserProfile.objects.filter(user=u).update(default_app="ask")
+    r = client.post(reverse("login"), {"username": "lee", "password": "pw-12345-xyz"})
+    assert r["Location"] == reverse("usage")
+
+
+def test_explicit_next_still_wins_over_the_default_app(client, django_user_model):
+    django_user_model.objects.create_user("lee", password="pw-12345-xyz")
+    r = client.post(reverse("login") + "?next=/usage/", {"username": "lee", "password": "pw-12345-xyz"})
+    assert r["Location"] == "/usage/"
+
+
+def test_login_for_an_account_without_a_profile_still_works(client, django_user_model):
+    u = django_user_model.objects.create_user("old", password="pw-12345-xyz")
+    UserProfile.objects.filter(user=u).delete()  # account predating profiles
+    r = client.post(reverse("login"), {"username": "old", "password": "pw-12345-xyz"})
+    assert r.status_code == 302 and r["Location"] == reverse("chat_home")
