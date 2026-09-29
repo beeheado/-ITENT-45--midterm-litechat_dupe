@@ -1,6 +1,6 @@
 """Capture real proxy responses into fixtures/proxy/ (keys redacted).
 
-Usage: python scripts/capture_proxy.py [case ...]   (cases: models completion stream error_bad_model error_bad_key)
+Usage: python scripts/capture_proxy.py [case ...]   (cases: models completion stream stream_truncated error_bad_model error_bad_key)
 Tooling only: not part of the Django app. Reads keys from .env.
 """
 
@@ -75,6 +75,22 @@ PROVIDERS = {
 }
 
 
+LONG_PROMPT = "Explain in detail how TCP congestion control works."
+
+
+def truncated_body(name: str, model: str) -> dict:
+    """A streaming request with a tiny token budget so a reasoning model runs out before answering."""
+    msgs = [{"role": "user", "content": LONG_PROMPT}]
+    if name == "openai":
+        return {"model": model, "stream": True, "max_tokens": 30, "stream_options": {"include_usage": True}, "messages": msgs}
+    if name == "anthropic":
+        return {"model": model, "stream": True, "max_tokens": 30, "messages": msgs}
+    return {
+        "contents": [{"role": "user", "parts": [{"text": LONG_PROMPT}]}],
+        "generationConfig": {"maxOutputTokens": 30},
+    }
+
+
 def redact(text: str) -> str:
     for key in KEYS.values():
         text = text.replace(key, "REDACTED")
@@ -119,6 +135,13 @@ def main() -> int:
                 ) as r:
                     raw = "".join(r.iter_text())
                 save(name, "stream", r.status_code, raw, ext="txt")
+
+            if want("stream_truncated"):
+                with c.stream(
+                    "POST", p["stream_url"], headers=h, json=truncated_body(name, model)
+                ) as r:
+                    raw = "".join(r.iter_text())
+                save(name, "stream_truncated", r.status_code, raw, ext="txt")
 
             if want("error_bad_model"):
                 # Google carries the model in the URL, others in the body: swap both.
