@@ -11,3 +11,15 @@ Tactical decisions made by the agent. Strategic ones are made by the user.
 - **`.claude/` gitignored.** It holds local session state.
 - **`CLAUDE.md` replaces `AGENTS.md`.** Claude Code loads it automatically.
 - **Capture script in `scripts/`** is tooling and not part of the app. It writes redacted fixtures.
+
+## Execution of plan 001 (2026-09-29)
+- **Answers from the user:** placeholder prices OK; uploads, web search and real payments out of scope; reasoning shown collapsed; local hosting only; "keep it simple" on credits, so **no top-up button**: new accounts get a $1.00 grant and admins can add ledger entries. (Plan M6's top-up button dropped.)
+- **`django-htmx` not added.** The streaming UI uses a ~50-line `fetch` reader, and HTMX is loaded from CDN only for future use. Fewer dependencies.
+- **Streaming wire format to the browser is NDJSON**, not SSE. Simpler to parse with `fetch`, and POST with CSRF just works (`EventSource` is GET-only).
+- **Provider adapters emit a single `Usage` event** just before `Done`, hiding the per-provider timing differences.
+- **Charge only from provider-reported usage.** No usage => message saved, user not billed. Cancelled streams are not billed (usage unknown).
+- **Reserve check** uses a pessimistic chars/3 input estimate plus `max_output_tokens`. It only gates the request, never sets a price.
+- **Auto-title** from the first message was implemented in M5 instead of M7.
+- **One in-flight reply per conversation** (409), with a 3-minute staleness window so a crashed request can't lock a chat.
+- **Bug found only by live smoke test:** the proxy rejects `max_completion_tokens` on the OpenAI interface, so we send `max_tokens`. Captured as `fixtures/proxy/openai/error_unsupported_param.json`. Lesson: fixtures replay proves parsing, not that requests are accepted, so keep a live smoke step.
+- **Not verified in a browser.** The inline JS was syntax-checked with Node and the server side was exercised over HTTP, but no browser-based UI test has been run.

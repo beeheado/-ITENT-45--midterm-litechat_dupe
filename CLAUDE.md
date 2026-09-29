@@ -5,14 +5,15 @@ Stack: Python 3.11 + Django 5.2, Django templates + HTMX, SQLite, pytest. All LL
 I (the user) make strategic decisions; you make tactical ones. Log tactical decisions in `doc/wiki/decisions.md`.
 
 ## Commands
-Fill these in as they come to exist.
 - Activate venv: `source .venv/bin/activate` (or call `.venv/bin/python` directly)
 - Install deps: `pip install -r requirements.txt` (re-freeze after adding one)
 - Run server: `python manage.py runserver`
 - Tests: `pytest`
 - Checks: `python manage.py check`
 - Migrations: `python manage.py makemigrations && python manage.py migrate`
-- Proxy capture script: `python scripts/capture_proxy.py` (to be created in study 001)
+- Proxy capture script: `python scripts/capture_proxy.py [case ...]` (writes redacted fixtures)
+- Export transcripts (redacted): `scripts/export_transcripts.sh`
+- Create admin: `python manage.py createsuperuser` (admin at `/admin/`)
 
 ## Workflow loop
 Every new outcome goes through: **study -> plan -> execute -> rendezvous -> sync docs**.
@@ -40,4 +41,4 @@ The proxy API, provider response formats and any binary assets are external cont
 - Stay within the stack. Note any new dependency in the plan first.
 - Ask me before strategic changes: scope, schema redesign, new framework.
 - Store money as integer micro-units, never floats.
-- Transcripts of sessions go in `doc/transcripts/` (copy from `~/.claude/projects/-Users-luismariano-Downloads-darkchat/`).
+- Session transcripts go in `doc/transcripts/` via `scripts/export_transcripts.sh` (it redacts proxy keys; raw transcripts contain them, so never copy by hand).
