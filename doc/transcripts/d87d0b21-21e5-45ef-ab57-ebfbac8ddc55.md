@@ -87,7 +87,10 @@ create the initial first prompt for me to achieve the assignment
 
 ---
 
-### CLAUDE · 2026-09-29 13:49 UTC
+### USER · 2026-09-29 13:49 UTC
+
+> **User decision:** plan approved
+
 
 I wrote your first prompt for a new Claude Code session. It's in [the plan file](/Users/luismariano/.claude/plans/pasted-content-id-9fc3-itent-dazzling-bubble.md): copy everything under **"THE PROMPT"**. I haven't run it or changed anything in the project folder.
 
@@ -590,6 +593,12 @@ tell me what to do next now that plan 001 is done
 
 > tool: **ExitPlanMode**
 
+---
+
+### USER · 2026-09-29 14:14 UTC
+
+> **User decision:** plan approved
+
 
 Plan 001 is done. Before your steps, there's one thing I got wrong: **the README says admins can grant credits in `/admin/`, but the app can't do that.** The Wallet balance is read-only in admin and ledger entries can't be added there, so nobody can top up a user. New accounts get $1.00 and then run out. I should have caught this before writing that line.
 
@@ -814,6 +823,12 @@ This is a different task from the prompt plan, so I'm replacing the plan file wi
 
 > tool: **ExitPlanMode**
 
+---
+
+### USER · 2026-09-29 14:35 UTC
+
+> **User decision:** plan approved
+
 
 A 403 means GitHub knows who you are but that account isn't allowed to write to the repo. The earlier error was a 401, meaning it didn't know who you were, so this is a change. The repo itself is fine: I can reach it and it's empty.
 
@@ -870,6 +885,12 @@ Read-only audit first: what's on disk, what's actually on GitHub, and whether an
 
 
 > tool: **ExitPlanMode**
+
+---
+
+### USER · 2026-09-29 14:39 UTC
+
+> **User decision:** plan approved
 
 
 Plan approved, so I'm executing it. To write the transcript renderer, I first need to see how the raw session file is structured.
@@ -959,7 +980,10 @@ This is a new bug, so I'm investigating read-only. The most useful evidence is t
 
 ---
 
-### CLAUDE · 2026-09-29 14:50 UTC
+### USER · 2026-09-29 14:50 UTC
+
+> **User answered:** Your questions have been answered: "When a reply runs out of tokens and produces NO visible answer (only reasoning), should the user still be charged?"="Waive the charge (Recommended)". You can now continue with these answers in mind.
+
 
 > tool: **Bash** - Write the bug-fix plan into the plan file
 
@@ -968,7 +992,10 @@ This is a new bug, so I'm investigating read-only. The most useful evidence is t
 
 ---
 
-### CLAUDE · 2026-09-29 14:51 UTC
+### USER · 2026-09-29 14:51 UTC
+
+> **User decision:** plan approved
+
 
 Executing the approved plan. Step 1 is capturing what truncation actually looks like from each provider before I touch the parsers. I'll add a `stream_truncated` case to the capture script.
 
@@ -1248,7 +1275,10 @@ All the facts I need are confirmed. Two parts of your spec describe things that 
 
 ---
 
-### CLAUDE · 2026-09-29 15:13 UTC
+### USER · 2026-09-29 15:13 UTC
+
+> **User answered:** Your questions have been answered: "Default App Preference lists SimGen, Ask and Chat, but Darkchat only has Chat. How should the selector behave?"="Save all three, land on Chat (Recommended)", "The 'Generate AI Memories' toggle implies the app reads past conversations and writes memories with an LLM (which costs tokens and needs its own design). What should this plan do?"="Store the setting only (Recommended)". You can now continue with these answers in mind.
+
 
 Both answers match the recommendations. Writing the architecture and implementation plan now.
 
@@ -1257,6 +1287,12 @@ Both answers match the recommendations. Writing the architecture and implementat
 
 
 > tool: **ExitPlanMode**
+
+---
+
+### USER · 2026-09-29 15:13 UTC
+
+> **User decision:** plan approved
 
 
 > tool: **Bash** - Create branch and look at database settings
@@ -1356,3 +1392,67 @@ The docs are synced. Now the final rendezvous: full checks, merge to `main`, tra
 
 
 > tool: **Bash** - Commit docs, run checks, merge, export transcripts, and scan for leaks
+
+
+> tool: **Bash** - Push main and confirm it matches the remote
+
+---
+
+### CLAUDE · 2026-09-29 15:21 UTC
+
+The account page is built, merged into `main` and pushed. GitHub matches your local `main` at `fb3887e`. All 133 tests pass, `check` is clean, no API key is in any tracked file or in the git history, and your `db.sqlite3` was not touched.
+
+**The six sections, at `/account/`:**
+1. **Profile:** Display Name, Username, User ID and Member Since in "September 29, 2026" format. Display Name falls back to your username if you haven't set one, so I added an optional display name field to signup.
+2. **Global System Prompt:** the placeholder, caption and Save Prompt button match your spec. It is capped at 4000 characters and saved per user.
+3. **Memory Items:**
+   - **Generate AI Memories switch:** it saves your choice only.
+   - **Add form:** it sits above the list so "add your first one above" is accurate. It has the type dropdown, the "Enter memory content..." placeholder and Add Memory Item.
+   - **List:** memories can be deleted, with a limit of 50 per user and 500 characters each.
+4. **Default App:** SimGen, Ask and Chat, with the chosen one highlighted. The choice saves on click and applies at login.
+5. **Billing:** `[Personal] <name>`, an ACTIVE badge and the available credit in `$X.XX` format.
+6. **Back to App** link, centered at the bottom.
+
+**The prompt and memories change the chats.** The prompt and your memories are now sent to the model with every message. I tested this on all three real models with the prompt "Always answer in French" and memories "I'm vegetarian and allergic to nuts" and "I live in Lisbon". Each replied in French with a vegetarian, nut-free dish. Claude picked a Lisbon dish. Editing the prompt applies to existing chats immediately.
+
+The prompt and memories add tokens to every message, so they raise its cost. Input rose from about 210 tokens to 252, 341 and 429 on the three models. The page tells the user this.
+
+**Your two choices:**
+- **Default app:** all three choices save, but every one lands on Chat, because SimGen and Ask don't exist. When they are built, it's a one-line change in `APP_HOME` in [account_views.py](core/account_views.py).
+- **Generate AI Memories:** the switch saves your choice, but nothing reads past conversations yet. Real memory generation would need its own design, since it costs tokens.
+
+**Checked:**
+- **Tests:** turning the prompt injection off makes a test fail.
+- **Live run:** it used a scratch database, and I added a `DJANGO_DB_PATH` setting so smoke tests never touch your `db.sqlite3` again. The rule is now in `CLAUDE.md`.
+- **Screenshots:** I checked the page in dark and light, on desktop and phone. One screenshot came out unstyled because of a path mistake in my screenshot script, not the app, and I re-took it.
+
+I have not driven the page in a real browser. The switch and segmented buttons are plain form posts, and the tests cover them.
+
+**Next:** please click through `/account/` once, in dark and light. Your own `db.sqlite3` is still the earlier one, so new tables and migrations apply when you run `python manage.py migrate`. The wiki, plan 004 and the retrospective are updated, and the transcripts were refreshed just before the push.
+
+---
+
+### USER · 2026-09-29 15:25 UTC
+
+generate a transcript of this entire session that i can download, ready for submission. make this a .md file. also, let me know if the github is ready to submit as is.
+
+---
+
+### CLAUDE · 2026-09-29 15:26 UTC
+
+I'll regenerate the transcript fresh from the session log and check it properly, and check GitHub's public state for the readiness answer. First, what session logs exist and what GitHub shows.
+
+
+> tool: **Bash** - List session logs and check whether the GitHub repo is publicly visible
+
+
+> tool: **Bash** - Compare GitHub head to local and regenerate the transcript from the full session log
+
+
+GitHub's head matches local at `fb3887e`. Now I'll check the transcript's quality before packaging it: its start and end, and whether anything sensitive slipped through.
+
+
+> tool: **Bash** - Validate transcript coverage and scan for keys and personal data
+
+
+> tool: **Bash** - Keep user decisions in the readable transcript and regenerate it
