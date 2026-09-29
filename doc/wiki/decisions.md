@@ -32,3 +32,4 @@ Tactical decisions made by the agent. Strategic ones are made by the user.
 - **Phone composer bug** found by screenshot: the model `<select>` pushed Send off-screen. Fixed with `width:0; flex:1 1 0`. Lesson: check layouts at a real narrow viewport (an iframe), not a cropped desktop render.
 - **Balance pill now links to `/usage/`.**
 - **Markdown rendering deferred.** It needs a sanitiser or a dependency and deserves its own study.
+- **Bug: the site was served unstyled** (`/static/style.css` 404) because the root `static/` dir was not in `STATICFILES_DIRS`. It existed since plan 001 and passed every test and my screenshots (which loaded the CSS by `file://` path). Found by curl-ing the running server's static URL during plan 002's live smoke test. Fixed in `fix/static-files`; guarded by `test_stylesheet_is_discoverable_by_staticfiles`. Lesson: verify assets through the real server, not the filesystem.
