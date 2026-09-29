@@ -196,3 +196,5 @@ td.num, th.num { text-align: right; }
   .body.thinking::before { opacity: .7; }
 }
 td:first-child { white-space: nowrap; }
+.msg .notice.soft { color: var(--muted); font-style: italic; }
+.msg.failed .who { color: var(--danger); }
