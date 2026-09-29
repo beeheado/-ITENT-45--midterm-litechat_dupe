@@ -1172,3 +1172,187 @@ The `cm "test: ..."` line adds the whole `core` folder. That's fine because only
 **4. Then submit.** Re-run `scripts/export_transcripts.sh` if you make any further changes. Tell me what you see and I'll fix anything odd.
 
 You can also send me a message once you'd like me to retry Bash and do steps 1 and 3 myself. If it works, I'll also run the low-token live check.
+
+---
+
+### USER · 2026-09-29 15:11 UTC
+
+I need to implement a user account/settings page in our Django app. Review our current codebase and formulate a plan to build the following features:
+
+### 1. User Profile Display
+- **Purpose:** Display basic read-only account metadata for the logged-in user.
+- **Fields to show:**
+  - `Display Name` (full name / profile name)
+  - `Username` (unique identifier / user handle)
+  - `User ID` (database or account ID)
+  - `Member Since` (account registration date formatted as Month DD, YYYY)
+
+### 2. Global System Prompt Configuration
+- **Purpose:** Allow users to set an overarching behavioral prompt for LLM conversations.
+- **Requirements:**
+  - Multiline text area with placeholder: `"e.g., You are a helpful assistant that..."`
+  - Explanatory caption: `"This instruction will apply to all chat sessions."`
+  - A primary `"Save Prompt"` action button.
+  - Data must persist per user and be available to query when generating chat sessions.
+
+### 3. Memory Items Management
+- **Purpose:** Store long-term personal context and preferences for the assistant to recall.
+- **Requirements:**
+  - **Auto-memory Toggle:** A toggle switch labeled `"Generate AI Memories"` with description: `"Allow the application to crawl your previous conversations with AI to generate AI-managed "memories" that will help personalize your experience."`
+  - **Memory List:** Displays active memory entries (with an empty state message: `"No memory items yet. Add your first one above."` when none exist).
+  - **Add Memory Form:**
+    - Type selector dropdown (e.g., `"Preference"`, `"Fact"`, etc.).
+    - Single-line text input with placeholder `"Enter memory content..."`.
+    - `"Add Memory Item"` submit button.
+  - CRUD support (saving new items, reading existing items per user).
+
+### 4. Default App Preference
+- **Purpose:** Let users select their preferred landing application/mode upon login.
+- **Requirements:**
+  - Segmented toggle/button selector with choices: `SimGen`, `Ask`, and `Chat`.
+  - Explanatory label: `"Choose which app you land on after logging in."`
+  - Active state highlighting for the currently chosen default.
+  - Setting should update and persist upon selection.
+
+### 5. Billing Accounts & Credit Balance
+- **Purpose:** Display user billing overview and current prepaid/available credit.
+- **Requirements:**
+  - Account identification: Label format `[Personal] <Display Name>` alongside an `ACTIVE` status badge.
+  - Balance readout: `"AVAILABLE CREDIT"` displayed prominently with currency formatting (e.g., `$2.00`).
+
+### 6. Navigation
+- **Purpose:** Allow navigation back to the primary workspace.
+- **Requirements:**
+  - A centered `"Back to App"` return link at the bottom of the page.
+
+---
+Please analyze our existing Django models, views, templates/frontend styling, and routes, and come up with an architecture and implementation plan for these features.
+
+
+Before planning, I need to know what state the repo is in. The out-of-tokens fix was left uncommitted when Bash failed, and this work has to build on it.
+
+
+> tool: **Bash** - Read-only check of branch and uncommitted changes
+
+---
+
+### CLAUDE · 2026-09-29 15:12 UTC
+
+> tool: **Bash** - Read-only survey of settings, URLs, adapters and request path
+
+
+All the facts I need are confirmed. Two parts of your spec describe things that don't exist in Darkchat yet, and the answers change the design, so I'll ask.
+
+
+> tool: **AskUserQuestion**
+
+---
+
+### CLAUDE · 2026-09-29 15:13 UTC
+
+Both answers match the recommendations. Writing the architecture and implementation plan now.
+
+
+> tool: **Bash** - Write the account-settings architecture and implementation plan
+
+
+> tool: **ExitPlanMode**
+
+
+> tool: **Bash** - Create branch and look at database settings
+
+---
+
+### CLAUDE · 2026-09-29 15:14 UTC
+
+> tool: **Bash** - Add scratch-DB setting, write study 003 and plan 004, commit
+
+
+M1 is the models: `UserProfile` and `MemoryItem`, created automatically for new users and backfilled for existing ones.
+
+
+> tool: **Bash** - Add profile and memory models, signal, admin, backfill migration and tests
+
+
+> tool: **Bash** - Fix the test, run suite, commit M1
+
+---
+
+### CLAUDE · 2026-09-29 15:15 UTC
+
+> tool: **Bash** - Build the account page shell with profile and billing cards, plus tests
+
+
+> tool: **Bash** - Add signup display name, run suite, commit M2
+
+
+> tool: **Bash** - Capture real system-prompt behaviour and check each provider obeys it
+
+---
+
+### CLAUDE · 2026-09-29 15:16 UTC
+
+> tool: **Bash** - Implement system prompt: request field, adapters, reserve, form, view and page section
+
+
+> tool: **Bash** - Write tests for adapters, prompt saving and prompt injection
+
+
+All 107 pass. Before committing I'm applying the mutation check to the most important behaviour. If `send()` stops passing the prompt to the model, these tests must fail.
+
+
+> tool: **Bash** - Mutation-check the prompt injection, restore, run suite, commit M3
+
+---
+
+### CLAUDE · 2026-09-29 15:17 UTC
+
+> tool: **Bash** - Implement memory items, toggle and injection with tests
+
+---
+
+### CLAUDE · 2026-09-29 15:18 UTC
+
+> tool: **Bash** - Commit M4
+
+
+> tool: **Bash** - Implement default app selector and login redirect with tests
+
+
+> tool: **Bash** - Commit M5
+
+
+> tool: **Bash** - Live end-to-end check on a scratch database with all three real providers
+
+---
+
+### CLAUDE · 2026-09-29 15:19 UTC
+
+> tool: **Bash** - Screenshot the account page in dark/light, desktop/phone, CSS via the real server
+
+
+> tool: **Read** - /private/tmp/claude-501/-Users-luismariano-Downloads-darkchat/d87d0b21-21e5-45ef-ab57-ebfbac8ddc55/scratchpad/acct/out_dark_desktop.png
+
+
+> tool: **Bash** - Fix stylesheet paths and re-take screenshots
+
+
+> tool: **Read** - /private/tmp/claude-501/-Users-luismariano-Downloads-darkchat/d87d0b21-21e5-45ef-ab57-ebfbac8ddc55/scratchpad/acct/out_dark_desktop.png
+
+
+> tool: **Read** - /private/tmp/claude-501/-Users-luismariano-Downloads-darkchat/d87d0b21-21e5-45ef-ab57-ebfbac8ddc55/scratchpad/acct/out_light_phone.png
+
+
+The phone layout stacks cleanly with no horizontal overflow, and light mode is readable. The verification is done, so I'm syncing the docs: wiki, plan checkboxes, README and the retrospective.
+
+---
+
+### CLAUDE · 2026-09-29 15:20 UTC
+
+> tool: **Bash** - Sync wiki, plan, README and retrospective for plan 004
+
+
+The docs are synced. Now the final rendezvous: full checks, merge to `main`, transcript export, leak scan, and the push the plan calls for.
+
+
+> tool: **Bash** - Commit docs, run checks, merge, export transcripts, and scan for leaks
