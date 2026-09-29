@@ -24,6 +24,44 @@
     </form>
   </section>
 
+  <section class="card" aria-labelledby="h-memory">
+    <h2 id="h-memory">Memory Items</h2>
+    <form method="post" action="{% url 'set_auto_memory' %}" class="switch-row">{% csrf_token %}
+      <div>
+        <div class="label" id="auto-label">Generate AI Memories</div>
+        <p class="caption" id="auto-desc">Allow the application to crawl your previous conversations with AI to generate AI-managed "memories" that will help personalize your experience.</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="auto_memory" role="switch" {% if profile.auto_memory %}checked{% endif %} aria-labelledby="auto-label" aria-describedby="auto-desc" onchange="this.form.requestSubmit()">
+        <span class="track"></span>
+      </label>
+      <noscript><button>Save</button></noscript>
+    </form>
+
+    <form method="post" action="{% url 'add_memory' %}" class="mem-add" style="margin-top:1rem">{% csrf_token %}
+      <select name="kind" aria-label="Memory type">
+        {% for value, label in memory_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <input type="text" name="content" maxlength="500" placeholder="Enter memory content..." aria-label="Memory content" required>
+      <button>Add Memory Item</button>
+    </form>
+    <p class="caption">Memory items are sent with every message, so they count toward your usage.</p>
+
+    {% if memories %}
+      <ul class="mem-list" aria-label="Memory items">
+        {% for m in memories %}
+          <li class="mem-item">
+            <span class="badge">{{ m.get_kind_display }}</span>
+            <span class="text">{{ m.content }}</span>
+            <form method="post" action="{% url 'delete_memory' m.pk %}" class="inline">{% csrf_token %}<button class="secondary" aria-label="Delete memory: {{ m.content|truncatechars:40 }}">Delete</button></form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-note">No memory items yet. Add your first one above.</p>
+    {% endif %}
+  </section>
+
   <section class="card" aria-labelledby="h-billing">
     <h2 id="h-billing">Billing</h2>
     <div class="billing-row">
