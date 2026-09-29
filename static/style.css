@@ -26,3 +26,4 @@ details.reasoning{color:var(--muted);font-size:.85rem;margin-bottom:.4rem}
 .composer{display:flex;gap:.5rem;padding-top:.5rem}.composer textarea{flex:1;resize:vertical}
 .notice{color:#ff7b72}
 table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:.4rem;text-align:left}
+.convhead{display:flex;gap:.5rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)}.convhead input{min-width:16rem}button.danger{background:#ff7b72}.muted{color:var(--muted)}.num{text-align:right;font-variant-numeric:tabular-nums}
