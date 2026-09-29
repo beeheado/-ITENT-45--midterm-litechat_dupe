@@ -2,7 +2,16 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
+from .providers.types import is_truncated
+
 MICROS = 1_000_000  # 1 credit = $1.00 = 1,000,000 micro-credits
+
+NO_ANSWER_TRUNCATED = (
+    "The model used its whole token budget thinking and gave no answer, so you weren't charged. "
+    "Try again, or ask a shorter or simpler question."
+)
+NO_ANSWER = "The model returned no answer, so you weren't charged. Try again."
+CUT_OFF = "The reply was cut off at the length limit. Ask it to continue."
 
 
 class LLMModel(models.Model):
@@ -14,7 +23,7 @@ class LLMModel(models.Model):
     # Prices are micro-credits per one million tokens (250_000 = $0.25 / Mtok).
     input_price_micros_per_mtok = models.PositiveIntegerField()
     output_price_micros_per_mtok = models.PositiveIntegerField()
-    max_output_tokens = models.PositiveIntegerField(default=1024)
+    max_output_tokens = models.PositiveIntegerField(default=8192)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -63,6 +72,7 @@ class Message(models.Model):
     cost_micros = models.BigIntegerField(default=0)  # snapshot; price edits never rewrite history
     status = models.CharField(max_length=10, choices=STATUSES, default="complete")
     error = models.TextField(blank=True)
+    finish_reason = models.CharField(max_length=40, blank=True)  # provider's stop reason, e.g. stop / length
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -70,6 +80,21 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.role}: {self.content[:40]}"
+
+    @property
+    def truncated(self):
+        return is_truncated(self.finish_reason)
+
+    @property
+    def notice(self):
+        """What to tell the user about this reply (empty when nothing is wrong). Also covers old rows with no finish_reason."""
+        if self.error:
+            return self.error
+        if self.role != "assistant" or self.status == "pending":
+            return ""
+        if not self.content.strip():
+            return NO_ANSWER
+        return CUT_OFF if self.truncated else ""
 
 
 class LedgerEntry(models.Model):
