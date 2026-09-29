@@ -82,7 +82,8 @@ WSGI_APPLICATION = "darkchat.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        # DJANGO_DB_PATH lets smoke tests run against a scratch database instead of the developer's own.
+        "NAME": os.environ.get("DJANGO_DB_PATH", BASE_DIR / "db.sqlite3"),
     }
 }
 

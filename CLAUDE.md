@@ -8,6 +8,7 @@ I (the user) make strategic decisions; you make tactical ones. Log tactical deci
 - Activate venv: `source .venv/bin/activate` (or call `.venv/bin/python` directly)
 - Install deps: `pip install -r requirements.txt` (re-freeze after adding one)
 - Run server: `python manage.py runserver`
+- Scratch DB for smoke tests (never touch `db.sqlite3`): `DJANGO_DB_PATH=/tmp/scratch.sqlite3 python manage.py migrate && DJANGO_DB_PATH=/tmp/scratch.sqlite3 python manage.py runserver 8765`
 - Tests: `pytest`
 - Checks: `python manage.py check`
 - Migrations: `python manage.py makemigrations && python manage.py migrate`
@@ -41,4 +42,6 @@ The proxy API, provider response formats and any binary assets are external cont
 - Stay within the stack. Note any new dependency in the plan first.
 - Ask me before strategic changes: scope, schema redesign, new framework.
 - Store money as integer micro-units, never floats.
+- Never delete, reset or overwrite the user's `db.sqlite3`. Smoke tests use `DJANGO_DB_PATH`.
+- Smoke prompts must include one that needs real thinking, not just "say hi".
 - Session transcripts go in `doc/transcripts/` via `scripts/export_transcripts.sh` (it redacts proxy keys; raw transcripts contain them, so never copy by hand).
