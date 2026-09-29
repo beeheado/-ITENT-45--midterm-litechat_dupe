@@ -1,9 +1,11 @@
 import json
+from datetime import timedelta
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.http import JsonResponse, StreamingHttpResponse
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -11,6 +13,8 @@ from . import ledger
 from .models import Conversation, LedgerEntry, LLMModel, Message
 from .providers import get_adapter
 from .providers.types import ChatMessage, ChatRequest, Done, Error, ReasoningDelta, TextDelta, Usage
+
+PENDING_WINDOW = timedelta(minutes=3)
 
 
 def signup(request):
@@ -75,6 +79,11 @@ def send(request, pk):
         return JsonResponse({"error": "Type a message first."}, status=400)
     if model is None:
         return JsonResponse({"error": "Pick a model."}, status=400)
+
+    # One reply at a time per chat. A pending reply older than the window is stale (crashed request).
+    in_flight = conv.messages.filter(role="assistant", status="pending", created_at__gte=timezone.now() - PENDING_WINDOW)
+    if in_flight.exists():
+        return JsonResponse({"error": "Wait for the current reply to finish."}, status=409)
 
     wallet = request.user.wallet
     history = _history(conv) + [ChatMessage("user", content)]

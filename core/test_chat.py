@@ -148,3 +148,22 @@ def test_pages_render(logged, conv, model, monkeypatch):
     assert logged.get(reverse("chat_home")).status_code == 200
     r = logged.post(reverse("new_conversation"))
     assert r.status_code == 302 and Conversation.objects.count() == 2
+
+
+def test_second_send_while_reply_pending_is_rejected(logged, conv, model, monkeypatch):
+    fake = use_adapter(monkeypatch, GOOD)
+    Message.objects.create(conversation=conv, role="assistant", model=model, status="pending")
+    r, body = post(logged, conv, model)
+    assert r.status_code == 409 and not fake.requests
+
+
+def test_stale_pending_reply_does_not_block_forever(logged, conv, model, monkeypatch):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    use_adapter(monkeypatch, GOOD)
+    old = Message.objects.create(conversation=conv, role="assistant", model=model, status="pending")
+    Message.objects.filter(pk=old.pk).update(created_at=timezone.now() - timedelta(minutes=10))
+    r, _ = post(logged, conv, model)
+    assert r.status_code == 200
