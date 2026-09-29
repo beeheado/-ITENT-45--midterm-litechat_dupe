@@ -23,3 +23,6 @@ Tests: `pytest` (no network; provider streams are replayed from `fixtures/proxy/
 - `core/views.py`, `templates/`: chat UI (Django templates + a small streaming `fetch` reader)
 - `doc/study`, `doc/plan`, `doc/wiki`: the study -> plan -> execute -> sync workflow record
 - `scripts/capture_proxy.py`: re-capture real proxy responses into `fixtures/proxy/`
+
+## How this was built
+Built with Claude Code under a study -> plan -> execute -> rendezvous -> sync-docs loop, scoped to conventional commits. Start at [`doc/README.md`](doc/README.md) for the index: studies, plans, living wiki, the retrospective, the session transcripts, and the real API captures in `fixtures/proxy/`.
