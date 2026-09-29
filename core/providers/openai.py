@@ -21,7 +21,7 @@ class OpenAIAdapter(ProviderAdapter):
             "stream": True,
             # Without this the proxy sends no usage at all, and we can't bill.
             "stream_options": {"include_usage": True},
-            "max_completion_tokens": req.max_tokens,
+            "max_tokens": req.max_tokens,
             "messages": [{"role": m.role, "content": m.content} for m in req.messages],
         }
 

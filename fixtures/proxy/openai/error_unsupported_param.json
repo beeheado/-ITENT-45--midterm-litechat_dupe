@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "Bad Request",
+    "message": "field max_completion_tokens is unsupported at this implementation milestone",
+    "param": null,
+    "type": "invalid_request_error"
+  }
+}

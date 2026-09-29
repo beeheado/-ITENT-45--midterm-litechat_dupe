@@ -5,6 +5,9 @@ from . import views
 
 urlpatterns = [
     path("", views.chat_home, name="chat_home"),
+    path("c/new/", views.new_conversation, name="new_conversation"),
+    path("c/<int:pk>/", views.conversation, name="conversation"),
+    path("c/<int:pk>/send/", views.send, name="send"),
     path("usage/", views.usage, name="usage"),
     path("signup/", views.signup, name="signup"),
     path("login/", auth_views.LoginView.as_view(), name="login"),

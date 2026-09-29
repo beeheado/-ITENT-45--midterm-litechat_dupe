@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load money %}
+{% block title %}{{ conversation.title|default:"Darkchat" }}{% endblock %}
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <form method="post" action="{% url 'new_conversation' %}">{% csrf_token %}<button>+ New chat</button></form>
+    <ul>
+      {% for c in conversations %}
+        <li class="{% if conversation and c.pk == conversation.pk %}active{% endif %}"><a href="{% url 'conversation' c.pk %}">{{ c.title }}</a></li>
+      {% empty %}<li class="muted">No chats yet</li>{% endfor %}
+    </ul>
+  </aside>
+
+  <section class="chat">
+  {% if not conversation %}
+    <p>Pick a model, chat, and pay only for what you use. Start a <strong>new chat</strong> to begin.</p>
+  {% else %}
+    <div class="messages" id="messages">
+      {% for m in chat_messages %}
+        <div class="msg {{ m.role }} {% if m.status == 'failed' or m.status == 'cancelled' %}failed{% endif %}">
+          {% if m.reasoning %}<details class="reasoning"><summary>Reasoning</summary>{{ m.reasoning }}</details>{% endif %}
+          {{ m.content }}
+          {% if m.error %}<div class="notice">{{ m.error }}</div>{% endif %}
+          {% if m.role == "assistant" %}<div class="meta">{{ m.model.display_name }} · {{ m.input_tokens }} in / {{ m.output_tokens }} out · ${{ m.cost_micros|usd:6 }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="notice" id="error"></div>
+    <form class="composer" id="composer" method="post" action="{% url 'send' conversation.pk %}">
+      {% csrf_token %}
+      <select name="model" id="model">
+        {% for m in models %}
+          <option value="{{ m.pk }}" {% if m.pk == conversation.model_id %}selected{% endif %}>{{ m.display_name }} · {{ m.get_provider_display }} · ${{ m.input_price_micros_per_mtok|price_per_mtok }}/${{ m.output_price_micros_per_mtok|price_per_mtok }} per 1M tok</option>
+        {% endfor %}
+      </select>
+      <textarea name="content" id="content" rows="2" placeholder="Message" required></textarea>
+      <button id="send">Send</button>
+    </form>
+  {% endif %}
+  </section>
+</div>
+
+{% if conversation %}
+<script>
+(function () {
+  const form = document.getElementById("composer"), box = document.getElementById("messages"),
+        err = document.getElementById("error"), input = document.getElementById("content"),
+        btn = document.getElementById("send"), balance = document.querySelector(".balance");
+  const usd = (m, p) => (m / 1e6).toFixed(p);
+  const bubble = (cls, text) => { const d = document.createElement("div"); d.className = "msg " + cls; d.textContent = text; box.appendChild(d); box.scrollTop = box.scrollHeight; return d; };
+  box.scrollTop = box.scrollHeight;
+  input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    err.textContent = "";
+    const body = new FormData(form), text = input.value.trim();
+    if (!text) return;
+    btn.disabled = true;
+    const res = await fetch(form.action, { method: "POST", body, credentials: "same-origin" });
+    if (!res.ok) {
+      let msg = "Something went wrong."; try { msg = (await res.json()).error || msg; } catch (_) {}
+      err.textContent = msg; btn.disabled = false; return;
+    }
+    bubble("user", text); input.value = "";
+    const out = bubble("assistant", ""), body_el = document.createTextNode(""), meta = document.createElement("div");
+    let details = null, reasoningText = null;
+    meta.className = "meta"; out.append(body_el, meta);
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    const handle = (ev) => {
+      if (ev.t === "reasoning") {
+        if (!details) { details = document.createElement("details"); details.className = "reasoning";
+          const s = document.createElement("summary"); s.textContent = "Reasoning"; reasoningText = document.createTextNode(""); details.append(s, reasoningText); out.prepend(details); }
+        reasoningText.data += ev.v;
+      } else if (ev.t === "text") { body_el.data += ev.v; }
+      else if (ev.t === "done") {
+        meta.textContent = ev.input + " in / " + ev.output + " out · $" + usd(ev.cost, 6);
+        if (ev.error) { const n = document.createElement("div"); n.className = "notice"; n.textContent = ev.error; out.append(n); out.classList.add("failed"); }
+        if (balance) balance.textContent = "$" + usd(ev.balance, 4);
+      }
+      box.scrollTop = box.scrollHeight;
+    };
+    try {
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i; while ((i = buf.indexOf("\n")) >= 0) { const line = buf.slice(0, i); buf = buf.slice(i + 1); if (line) handle(JSON.parse(line)); }
+      }
+    } catch (_) { err.textContent = "Connection lost before the reply finished."; }
+    btn.disabled = false; input.focus();
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}
