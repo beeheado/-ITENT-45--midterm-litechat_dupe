@@ -1,23 +1,7 @@
 {
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "pong"
-          }
-        ],
-        "role": "model"
-      },
-      "finishReason": "STOP",
-      "index": 0
-    }
-  ],
-  "modelVersion": "gemini-3.8-flash",
-  "usageMetadata": {
-    "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 36,
-    "promptTokenCount": 208,
-    "totalTokenCount": 244
+  "error": {
+    "code": 404,
+    "message": "unknown generation route",
+    "status": "NOT_FOUND"
   }
 }

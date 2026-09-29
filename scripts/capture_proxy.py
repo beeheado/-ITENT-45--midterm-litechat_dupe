@@ -1,8 +1,9 @@
 """Capture real proxy responses into fixtures/proxy/ (keys redacted).
 
-Usage: python scripts/capture_proxy.py
+Usage: python scripts/capture_proxy.py [case ...]   (cases: models completion stream error_bad_model error_bad_key)
 Tooling only: not part of the Django app. Reads keys from .env.
 """
+
 import json
 import os
 import sys
@@ -30,7 +31,10 @@ PROVIDERS = {
         "headers": lambda k: {"Authorization": f"Bearer {k}"},
         "models_url": f"{BASE}/openai/v1/models",
         "chat_url": f"{BASE}/openai/v1/chat/completions",
-        "body": lambda m: {"model": m, "messages": [{"role": "user", "content": PROMPT}]},
+        "body": lambda m: {
+            "model": m,
+            "messages": [{"role": "user", "content": PROMPT}],
+        },
         "stream_body": lambda m: {
             "model": m,
             "stream": True,
@@ -63,7 +67,9 @@ PROVIDERS = {
         "models_url": f"{BASE}/google/v1beta/models",
         "chat_url": f"{BASE}/google/v1beta/models/gemini-3.8-flash:generateContent",
         "body": lambda m: {"contents": [{"role": "user", "parts": [{"text": PROMPT}]}]},
-        "stream_body": lambda m: {"contents": [{"role": "user", "parts": [{"text": PROMPT}]}]},
+        "stream_body": lambda m: {
+            "contents": [{"role": "user", "parts": [{"text": PROMPT}]}]
+        },
         "stream_url": f"{BASE}/google/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse",
     },
 }
@@ -89,28 +95,44 @@ def save(provider: str, case: str, status: int, body: str, ext: str = "json") ->
 
 
 def main() -> int:
+    only = set(sys.argv[1:])
+
+    def want(case: str) -> bool:
+        return not only or case in only
+
     with httpx.Client(timeout=60) as c:
         for name, p in PROVIDERS.items():
             h = {**p["headers"](KEYS[name]), "Content-Type": "application/json"}
             model = p["model"]
 
-            r = c.get(p["models_url"], headers=h)
-            save(name, "models", r.status_code, r.text)
+            if want("models"):
+                r = c.get(p["models_url"], headers=h)
+                save(name, "models", r.status_code, r.text)
 
-            r = c.post(p["chat_url"], headers=h, json=p["body"](model))
-            save(name, "completion", r.status_code, r.text)
+            if want("completion"):
+                r = c.post(p["chat_url"], headers=h, json=p["body"](model))
+                save(name, "completion", r.status_code, r.text)
 
-            with c.stream("POST", p["stream_url"], headers=h, json=p["stream_body"](model)) as r:
-                raw = "".join(r.iter_text())
-            save(name, "stream", r.status_code, raw, ext="txt")
+            if want("stream"):
+                with c.stream(
+                    "POST", p["stream_url"], headers=h, json=p["stream_body"](model)
+                ) as r:
+                    raw = "".join(r.iter_text())
+                save(name, "stream", r.status_code, raw, ext="txt")
 
-            bad_body = p["body"]("no-such-model")
-            r = c.post(p["chat_url"], headers=h, json=bad_body)
-            save(name, "error_bad_model", r.status_code, r.text)
+            if want("error_bad_model"):
+                # Google carries the model in the URL, others in the body: swap both.
+                bad_url = p["chat_url"].replace(model, "no-such-model")
+                r = c.post(bad_url, headers=h, json=p["body"]("no-such-model"))
+                save(name, "error_bad_model", r.status_code, r.text)
 
-            bad_h = {**p["headers"]("lp_invalid_key"), "Content-Type": "application/json"}
-            r = c.post(p["chat_url"], headers=bad_h, json=p["body"](model))
-            save(name, "error_bad_key", r.status_code, r.text)
+            if want("error_bad_key"):
+                bad_h = {
+                    **p["headers"]("lp_invalid_key"),
+                    "Content-Type": "application/json",
+                }
+                r = c.post(p["chat_url"], headers=bad_h, json=p["body"](model))
+                save(name, "error_bad_key", r.status_code, r.text)
     return 0
 
 
