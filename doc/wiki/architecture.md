@@ -24,3 +24,7 @@ Django 5.2 + SQLite, server-rendered templates, one small inline JS streaming re
 - Views: a `FakeAdapter` patched into `core.views.get_adapter`.
 - Ledger: invariant helper (sum of entries == balance == last `balance_after`, never negative), rollback test.
 - Live check: a manual smoke run against the real proxy (see `decisions.md`, 2026-09-29).
+
+## Frontend (after plan 002)
+`static/style.css` holds all styling (tokens for dark/light, one breakpoint at 800px). `templates/chat.html` contains a small inline script: it POSTs the form, reads the NDJSON stream, shows a "thinking" state until the first token, renders reasoning in a collapsed `<details>`, and attaches a Copy button. Message text is only ever set with `textContent`.
+Admin: Wallet list actions grant credit through `core.ledger.credit`.
