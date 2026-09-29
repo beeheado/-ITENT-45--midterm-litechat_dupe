@@ -3,13 +3,13 @@ from datetime import timedelta
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import ledger
+from .forms import SignupForm
 from .models import Conversation, LedgerEntry, LLMModel, Message
 from .providers import get_adapter
 from .providers.types import ChatMessage, ChatRequest, Done, Error, ReasoningDelta, TextDelta, Usage
@@ -19,12 +19,12 @@ PENDING_WINDOW = timedelta(minutes=3)
 
 def signup(request):
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = SignupForm(request.POST)
         if form.is_valid():
             login(request, form.save())
             return redirect("chat_home")
     else:
-        form = UserCreationForm()
+        form = SignupForm()
     return render(request, "registration/signup.html", {"form": form})
 
 
