@@ -173,3 +173,115 @@ def test_system_text_is_counted_in_the_reserve_estimate():
     model = LLMModel.objects.get(provider="anthropic")
     msgs = [ChatMessage("user", "hi")]
     assert ledger.estimate_reserve(model, msgs, "x" * 3000) > ledger.estimate_reserve(model, msgs)
+
+
+# --- memory items ---
+from core.models import MAX_MEMORY_CHARS, MAX_MEMORY_ITEMS, MemoryItem  # noqa: E402
+from core.prompting import build_system_prompt  # noqa: E402
+
+
+def add(client, kind="preference", content="I like short answers"):
+    return client.post(reverse("add_memory"), {"kind": kind, "content": content}, follow=True)
+
+
+def test_memory_section_has_the_exact_spec_text_and_empty_state(logged):
+    html = page(logged)
+    assert "Generate AI Memories" in html
+    assert 'Allow the application to crawl your previous conversations with AI to generate AI-managed "memories" that will help personalize your experience.' in html
+    assert "No memory items yet. Add your first one above." in html
+    assert 'placeholder="Enter memory content..."' in html and ">Add Memory Item<" in html
+    for label in ("Preference", "Fact"):
+        assert f">{label}</option>" in html
+
+
+def test_empty_state_appears_above_which_the_add_form_sits(logged):
+    html = page(logged)
+    assert html.index("Add Memory Item") < html.index("No memory items yet")  # "add your first one above" is true
+
+
+def test_add_lists_and_flashes(logged, user):
+    html = add(logged, "fact", "I live in Lisbon").content.decode()
+    assert "Memory added." in html and "I live in Lisbon" in html and ">Fact<" in html
+    assert "No memory items yet" not in html
+    assert MemoryItem.objects.get(user=user).kind == "fact"
+
+
+def test_blank_or_invalid_memory_is_rejected(logged, user):
+    assert "Enter some text" in add(logged, "fact", "   ").content.decode()
+    assert "Enter some text" in add(logged, "bogus", "x").content.decode()
+    assert "Enter some text" in add(logged, "fact", "z" * (MAX_MEMORY_CHARS + 1)).content.decode()
+    assert not MemoryItem.objects.exists()
+
+
+def test_memory_cap(logged, user):
+    MemoryItem.objects.bulk_create(MemoryItem(user=user, content=f"m{i}") for i in range(MAX_MEMORY_ITEMS))
+    assert f"up to {MAX_MEMORY_ITEMS}" in add(logged).content.decode()
+    assert MemoryItem.objects.filter(user=user).count() == MAX_MEMORY_ITEMS
+
+
+def test_delete_own_memory(logged, user):
+    m = MemoryItem.objects.create(user=user, content="bye")
+    r = logged.post(reverse("delete_memory", args=[m.pk]), follow=True)
+    assert "Memory deleted." in r.content.decode() and not MemoryItem.objects.exists()
+
+
+def test_cannot_delete_someone_elses_memory(logged, django_user_model):
+    other = django_user_model.objects.create_user("eve", password="pw")
+    m = MemoryItem.objects.create(user=other, content="private")
+    assert logged.post(reverse("delete_memory", args=[m.pk])).status_code == 404
+    assert MemoryItem.objects.filter(pk=m.pk).exists()
+
+
+def test_memories_are_private_to_their_owner(logged, django_user_model):
+    other = django_user_model.objects.create_user("eve", password="pw")
+    MemoryItem.objects.create(user=other, content="eve's secret")
+    assert "eve's secret" not in page(logged)
+
+
+def test_memory_text_is_escaped(logged):
+    html = add(logged, "fact", "<img src=x onerror=alert(1)>").content.decode()
+    assert "<img src=x" not in html and "&lt;img src=x" in html
+
+
+def test_memory_actions_require_login_and_post(client, logged):
+    assert logged.get(reverse("add_memory")).status_code == 405
+    client.logout()
+    assert client.post(reverse("add_memory"), {"kind": "fact", "content": "x"}).status_code == 302
+    assert not MemoryItem.objects.exists()
+
+
+def test_auto_memory_toggle_persists_both_ways(logged, user):
+    logged.post(reverse("set_auto_memory"), {"auto_memory": "on"})
+    assert UserProfile.objects.get(user=user).auto_memory is True
+    assert "checked" in page(logged).split('name="auto_memory"')[1].split(">")[0]
+    logged.post(reverse("set_auto_memory"), {})  # unchecked boxes send nothing
+    assert UserProfile.objects.get(user=user).auto_memory is False
+
+
+def test_memories_are_added_to_the_system_text(user):
+    assert build_system_prompt(user) == ""
+    MemoryItem.objects.create(user=user, kind="preference", content="I am vegetarian")
+    MemoryItem.objects.create(user=user, kind="fact", content="I live in Lisbon")
+    assert build_system_prompt(user) == (
+        "Things to remember about the user:\n- [Preference] I am vegetarian\n- [Fact] I live in Lisbon"
+    )
+    p = UserProfile.objects.get(user=user)
+    p.system_prompt = "Be brief."
+    p.save()
+    assert build_system_prompt(user).startswith("Be brief.\n\nThings to remember about the user:\n- [Preference]")
+
+
+def test_memories_reach_the_model_through_send(logged, user, monkeypatch):
+    fake = FakeAdapter()
+    monkeypatch.setattr(views, "get_adapter", lambda provider: fake)
+    model = LLMModel.objects.get(provider="anthropic")
+    conv = Conversation.objects.create(user=user, model=model)
+    add(logged, "preference", "I am vegetarian")
+    b"".join(logged.post(reverse("send", args=[conv.pk]), {"content": "dinner?", "model": model.pk}).streaming_content)
+    assert "[Preference] I am vegetarian" in fake.requests[0].system
+
+
+def test_other_users_memories_never_leak_into_my_requests(user, django_user_model):
+    other = django_user_model.objects.create_user("eve", password="pw")
+    MemoryItem.objects.create(user=other, content="eve's secret")
+    assert "eve's secret" not in build_system_prompt(user)
