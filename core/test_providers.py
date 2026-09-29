@@ -162,3 +162,20 @@ def test_stream_network_failure_becomes_error_event(monkeypatch):
     ev = list(get_adapter("google").stream(REQ))
     assert len(ev) == 1 and ev[0].kind == "network"
     assert "nope" not in ev[0].message  # don't leak transport internals
+
+
+# --- truncation: real captures where the model spent its whole token budget thinking (fixtures/proxy/*/stream_truncated.txt) ---
+from core.providers.types import is_truncated  # noqa: E402
+
+
+@pytest.mark.parametrize("provider,reason", [("openai", "length"), ("anthropic", "max_tokens"), ("google", "MAX_TOKENS")])
+def test_truncated_stream_has_reason_usage_and_no_answer(provider, reason):
+    ev = list(get_adapter(provider).parse_stream(fixture(provider, "stream_truncated.txt").splitlines(keepends=True)))
+    assert text_of(ev) == ""  # the whole budget went on thinking
+    assert Usage(211, 30) in ev  # usage is still reported, so the tokens are real
+    assert ev[-1] == Done(reason) and is_truncated(reason)
+    assert any(isinstance(e, ReasoningDelta) for e in ev) == (provider != "google")  # Gemini hides its thinking
+
+
+def test_normal_finish_reasons_are_not_truncation():
+    assert not any(is_truncated(r) for r in ("stop", "end_turn", "STOP", ""))
