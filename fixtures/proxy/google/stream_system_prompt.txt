@@ -1,0 +1,29 @@
+data: {"candidates":[{"content":{"parts":[{"text":"B"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"ON"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"J"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"OUR"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"\n\n"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"2"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":" +"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":" "}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"2"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":" ="}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":" "}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"4"}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[{"text":"."}],"role":"model"},"index":0}],"modelVersion":"gemini-3.8-flash"}
+
+data: {"candidates":[{"content":{"parts":[],"role":"model"},"finishReason":"STOP","index":0}],"modelVersion":"gemini-3.8-flash","usageMetadata":{"cachedContentTokenCount":0,"candidatesTokenCount":60,"promptTokenCount":228,"totalTokenCount":288}}
+
+

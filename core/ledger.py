@@ -24,9 +24,9 @@ def cost_for(model, input_tokens, output_tokens):
     return -(-total // MTOK)
 
 
-def estimate_reserve(model, messages):
+def estimate_reserve(model, messages, system=""):
     """Upper-bound-ish cost of a request, used to refuse it up front if the balance can't cover it."""
-    est_input = sum(len(m.content) for m in messages) // CHARS_PER_TOKEN + 1
+    est_input = (sum(len(m.content) for m in messages) + len(system)) // CHARS_PER_TOKEN + 1
     return cost_for(model, est_input, min(model.max_output_tokens, RESERVE_OUTPUT_TOKENS))
 
 

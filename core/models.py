@@ -6,6 +6,10 @@ from .providers.types import is_truncated
 
 MICROS = 1_000_000  # 1 credit = $1.00 = 1,000,000 micro-credits
 
+MAX_PROMPT_CHARS = 4000  # global system prompt; it is sent (and billed as input) with every message
+MAX_MEMORY_CHARS = 500
+MAX_MEMORY_ITEMS = 50
+
 NO_ANSWER_TRUNCATED = (
     "The model used its whole token budget thinking and gave no answer, so you weren't charged. "
     "Try again, or ask a shorter or simpler question."
@@ -115,3 +119,39 @@ class LedgerEntry(models.Model):
 
     def __str__(self):
         return f"{self.kind} {self.amount_micros}"
+
+
+class UserProfile(models.Model):
+    """Per-user settings. One row per user, created with the account (see signals.py)."""
+
+    APPS = [("simgen", "SimGen"), ("ask", "Ask"), ("chat", "Chat")]
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    system_prompt = models.TextField(blank=True)
+    auto_memory = models.BooleanField(default=False)  # stored only; generation is a separate future feature
+    default_app = models.CharField(max_length=10, choices=APPS, default="chat")
+
+    def __str__(self):
+        return f"profile of {self.user}"
+
+
+def profile_for(user):
+    """The user's profile, created on demand (covers accounts made before profiles existed)."""
+    return UserProfile.objects.get_or_create(user=user)[0]
+
+
+class MemoryItem(models.Model):
+    KINDS = [("preference", "Preference"), ("fact", "Fact"), ("goal", "Goal"), ("context", "Context")]
+    SOURCES = [("user", "You"), ("ai", "AI")]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="memories")
+    kind = models.CharField(max_length=12, choices=KINDS, default="preference")
+    content = models.CharField(max_length=MAX_MEMORY_CHARS)
+    source = models.CharField(max_length=4, choices=SOURCES, default="user")  # "ai" reserved for generated memories
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.get_kind_display()}: {self.content[:40]}"

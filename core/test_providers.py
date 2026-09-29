@@ -179,3 +179,29 @@ def test_truncated_stream_has_reason_usage_and_no_answer(provider, reason):
 
 def test_normal_finish_reasons_are_not_truncation():
     assert not any(is_truncated(r) for r in ("stop", "end_turn", "STOP", ""))
+
+
+# --- system prompt: each provider's native slot (real captures in fixtures/proxy/*/stream_system_prompt.txt) ---
+SYS_REQ = ChatRequest("m", [ChatMessage("user", "hi")], 50, system="Be brief.")
+
+
+def test_system_prompt_goes_in_each_providers_native_slot():
+    o = get_adapter("openai").body(SYS_REQ)["messages"]
+    assert o[0] == {"role": "system", "content": "Be brief."} and o[1] == {"role": "user", "content": "hi"}
+    assert get_adapter("anthropic").body(SYS_REQ)["system"] == "Be brief."
+    assert get_adapter("google").body(SYS_REQ)["systemInstruction"] == {"parts": [{"text": "Be brief."}]}
+
+
+def test_no_system_prompt_leaves_request_bodies_unchanged():
+    plain = ChatRequest("m", [ChatMessage("user", "hi")], 50)
+    assert get_adapter("openai").body(plain)["messages"] == [{"role": "user", "content": "hi"}]
+    assert "system" not in get_adapter("anthropic").body(plain)
+    assert "systemInstruction" not in get_adapter("google").body(plain)
+
+
+@pytest.mark.parametrize("provider", ["openai", "anthropic", "google"])
+def test_captured_replies_obeyed_the_system_prompt(provider):
+    """The proxy accepted the system prompt and the model followed it ("start with BONJOUR")."""
+    ev = list(get_adapter(provider).parse_stream(fixture(provider, "stream_system_prompt.txt").splitlines(keepends=True)))
+    assert text_of(ev).strip().startswith("BONJOUR")
+    assert any(isinstance(e, Usage) and e.input_tokens > 0 for e in ev) and not any(isinstance(e, Error) for e in ev)

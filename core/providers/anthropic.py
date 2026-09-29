@@ -16,12 +16,15 @@ class AnthropicAdapter(ProviderAdapter):
         return {"x-api-key": key, "anthropic-version": "2023-06-01"}
 
     def body(self, req: ChatRequest):
-        return {
+        body = {
             "model": req.model_id,
             "stream": True,
             "max_tokens": req.max_tokens,
             "messages": [{"role": m.role, "content": m.content} for m in req.messages],
         }
+        if req.system:
+            body["system"] = req.system
+        return body
 
     def parse_stream(self, lines):
         input_tokens = output_tokens = 0

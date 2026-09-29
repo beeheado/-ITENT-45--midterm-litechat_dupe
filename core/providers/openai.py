@@ -22,7 +22,8 @@ class OpenAIAdapter(ProviderAdapter):
             # Without this the proxy sends no usage at all, and we can't bill.
             "stream_options": {"include_usage": True},
             "max_tokens": req.max_tokens,
-            "messages": [{"role": m.role, "content": m.content} for m in req.messages],
+            "messages": ([{"role": "system", "content": req.system}] if req.system else [])
+            + [{"role": m.role, "content": m.content} for m in req.messages],
         }
 
     def parse_stream(self, lines):

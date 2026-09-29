@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load money %}
+{% block title %}Account · Darkchat{% endblock %}
+{% block content %}
+<div class="account">
+  <h1>Account</h1>
+
+  <section class="card" aria-labelledby="h-profile">
+    <h2 id="h-profile">Profile</h2>
+    <dl class="kv">
+      <dt>Display Name</dt><dd>{{ display_name }}</dd>
+      <dt>Username</dt><dd>{{ user.username }}</dd>
+      <dt>User ID</dt><dd>{{ user.pk }}</dd>
+      <dt>Member Since</dt><dd>{{ user.date_joined|date:"F d, Y" }}</dd>
+    </dl>
+  </section>
+
+  <section class="card" aria-labelledby="h-prompt">
+    <h2 id="h-prompt">Global System Prompt</h2>
+    <form method="post" action="{% url 'save_prompt' %}">{% csrf_token %}
+      <textarea class="wide" name="system_prompt" rows="5" maxlength="4000" aria-labelledby="h-prompt" placeholder="e.g., You are a helpful assistant that...">{{ profile.system_prompt }}</textarea>
+      <p class="caption">This instruction will apply to all chat sessions. It is sent with every message, so it counts toward your usage.</p>
+      <div class="form-actions"><button>Save Prompt</button></div>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="h-memory">
+    <h2 id="h-memory">Memory Items</h2>
+    <form method="post" action="{% url 'set_auto_memory' %}" class="switch-row">{% csrf_token %}
+      <div>
+        <div class="label" id="auto-label">Generate AI Memories</div>
+        <p class="caption" id="auto-desc">Allow the application to crawl your previous conversations with AI to generate AI-managed "memories" that will help personalize your experience.</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="auto_memory" role="switch" {% if profile.auto_memory %}checked{% endif %} aria-labelledby="auto-label" aria-describedby="auto-desc" onchange="this.form.requestSubmit()">
+        <span class="track"></span>
+      </label>
+      <noscript><button>Save</button></noscript>
+    </form>
+
+    <form method="post" action="{% url 'add_memory' %}" class="mem-add" style="margin-top:1rem">{% csrf_token %}
+      <select name="kind" aria-label="Memory type">
+        {% for value, label in memory_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <input type="text" name="content" maxlength="500" placeholder="Enter memory content..." aria-label="Memory content" required>
+      <button>Add Memory Item</button>
+    </form>
+    <p class="caption">Memory items are sent with every message, so they count toward your usage.</p>
+
+    {% if memories %}
+      <ul class="mem-list" aria-label="Memory items">
+        {% for m in memories %}
+          <li class="mem-item">
+            <span class="badge">{{ m.get_kind_display }}</span>
+            <span class="text">{{ m.content }}</span>
+            <form method="post" action="{% url 'delete_memory' m.pk %}" class="inline">{% csrf_token %}<button class="secondary" aria-label="Delete memory: {{ m.content|truncatechars:40 }}">Delete</button></form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-note">No memory items yet. Add your first one above.</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-app">
+    <h2 id="h-app">Default App</h2>
+    <p class="caption" id="app-desc" style="margin-top:0">Choose which app you land on after logging in.</p>
+    <form method="post" action="{% url 'set_default_app' %}" style="margin-top:.75rem">{% csrf_token %}
+      <div class="segmented" role="radiogroup" aria-labelledby="h-app" aria-describedby="app-desc">
+        {% for value, label in default_apps %}<button name="default_app" value="{{ value }}" role="radio" aria-checked="{% if profile.default_app == value %}true{% else %}false{% endif %}">{{ label }}</button>{% endfor %}
+      </div>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="h-billing">
+    <h2 id="h-billing">Billing</h2>
+    <div class="billing-row">
+      <strong>[Personal] {{ display_name }}</strong>
+      {% if user.is_active %}<span class="badge active">ACTIVE</span>{% else %}<span class="badge">INACTIVE</span>{% endif %}
+    </div>
+    <div class="credit-label">AVAILABLE CREDIT</div>
+    <div class="credit">${{ balance_micros|usd:2 }}</div>
+    <p class="caption"><a href="{% url 'usage' %}">View usage history</a> for the exact balance and every charge.</p>
+  </section>
+
+  <p class="back"><a href="{% url 'chat_home' %}">Back to App</a></p>
+</div>
+{% endblock %}

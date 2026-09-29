@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 
 from . import ledger
-from .models import Conversation, LedgerEntry, LLMModel, Message, Wallet
+from .models import Conversation, LedgerEntry, LLMModel, MemoryItem, Message, UserProfile, Wallet
 
 
 @admin.register(LLMModel)
@@ -64,3 +64,14 @@ class MessageInline(admin.TabularInline):
 class ConversationAdmin(admin.ModelAdmin):
     list_display = ("title", "user", "model", "updated_at")
     inlines = [MessageInline]
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "default_app", "auto_memory")
+
+
+@admin.register(MemoryItem)
+class MemoryItemAdmin(admin.ModelAdmin):
+    list_display = ("user", "kind", "source", "content", "created_at")
+    list_filter = ("kind", "source")

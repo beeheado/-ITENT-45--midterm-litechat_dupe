@@ -3,13 +3,14 @@ from datetime import timedelta
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import ledger
+from .forms import SignupForm
+from .prompting import build_system_prompt
 from .models import Conversation, LedgerEntry, LLMModel, Message
 from .providers import get_adapter
 from .providers.types import ChatMessage, ChatRequest, Done, Error, ReasoningDelta, TextDelta, Usage
@@ -19,12 +20,12 @@ PENDING_WINDOW = timedelta(minutes=3)
 
 def signup(request):
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = SignupForm(request.POST)
         if form.is_valid():
             login(request, form.save())
             return redirect("chat_home")
     else:
-        form = UserCreationForm()
+        form = SignupForm()
     return render(request, "registration/signup.html", {"form": form})
 
 
@@ -89,8 +90,9 @@ def send(request, pk):
 
     wallet = request.user.wallet
     history = _history(conv) + [ChatMessage("user", content)]
+    system = build_system_prompt(request.user)
     try:
-        ledger.ensure_can_afford(wallet, ledger.estimate_reserve(model, history))
+        ledger.ensure_can_afford(wallet, ledger.estimate_reserve(model, history, system))
     except ledger.InsufficientBalance:
         return JsonResponse({"error": "Not enough balance for this message. Ask an admin for credits."}, status=402)
 
@@ -101,7 +103,7 @@ def send(request, pk):
     conv.save()
     reply = Message.objects.create(conversation=conv, role="assistant", model=model, status="pending")
 
-    req = ChatRequest(model.model_id, history, model.max_output_tokens)
+    req = ChatRequest(model.model_id, history, model.max_output_tokens, system)
     return StreamingHttpResponse(
         _stream_reply(get_adapter(model.provider), req, reply, wallet), content_type="application/x-ndjson",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
