@@ -62,3 +62,12 @@ def test_inline_chat_script_is_valid_javascript(chat_page, tmp_path):
     f.write_text(js)
     result = subprocess.run(["node", "--check", str(f)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_stylesheet_is_discoverable_by_staticfiles():
+    """Regression: static/ at the project root was not registered, so the site rendered unstyled (404 on /static/style.css)."""
+    from django.contrib.staticfiles import finders
+
+    path = finders.find("style.css")
+    assert path, "style.css is not discoverable by staticfiles"
+    assert "--accent" in open(path).read()
